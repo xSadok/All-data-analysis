@@ -353,9 +353,102 @@
             
             const MONTH_ORDER = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             
+            const APP_STATE_KEY = 'dashboardAnaliseState';
+
+            // --- LOCALSTORAGE FUNCTIONS ---
+            /**
+             * Salva o estado atual da aplicação no localStorage.
+             */
+            function saveStateToLocalStorage() {
+                try {
+                    const state = {
+                        allData,
+                        activeGroupFilters: [...activeGroupFilters],
+                        activeMonthFilters: [...activeMonthFilters],
+                        activeMetrics: [...activeMetrics],
+                        activeResourceTypes: [...activeResourceTypes],
+                        currentSort,
+                        columnOrder,
+                        aereoOverrides,
+                        useAereoOverrides,
+                        year: yearSelector.value,
+                        toggles: {
+                            groupFleet: groupFleetToggle.checked,
+                            samuOeste: samuOesteToggle.checked,
+                            includeNullIncidents: includeNullIncidentsToggle.checked,
+                            primaryIncidents: primaryIncidentsToggle.checked,
+                            secondaryIncidents: secondaryIncidentsToggle.checked,
+                        }
+                    };
+                    localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+                } catch (e) {
+                    console.error("Erro ao salvar estado no localStorage:", e);
+                    showMessage("Não foi possível salvar a sessão. O armazenamento pode estar cheio.", true);
+                }
+            }
+
+            /**
+             * Carrega o estado da aplicação do localStorage.
+             */
+            function loadStateFromLocalStorage() {
+                const savedStateJSON = localStorage.getItem(APP_STATE_KEY);
+                if (!savedStateJSON) return false;
+
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    
+                    if (!savedState.allData || savedState.allData.length === 0) {
+                        return false;
+                    }
+
+                    // Restaura dados e filtros
+                    allData = savedState.allData;
+                    activeGroupFilters = new Set(savedState.activeGroupFilters || []);
+                    activeMonthFilters = new Set(savedState.activeMonthFilters || []);
+                    activeMetrics = new Set(savedState.activeMetrics || ['Atendimentos', 'Vítimas']);
+                    activeResourceTypes = new Set(savedState.activeResourceTypes || INTERESTING_RESOURCES);
+                    currentSort = savedState.currentSort || { key: null, direction: 'asc' };
+                    columnOrder = savedState.columnOrder || [];
+                    aereoOverrides = savedState.aereoOverrides || {};
+                    useAereoOverrides = savedState.useAereoOverrides || false;
+                    yearSelector.value = savedState.year || new Date().getFullYear();
+
+                    // Restaura estado dos toggles
+                    if (savedState.toggles) {
+                        groupFleetToggle.checked = savedState.toggles.groupFleet;
+                        samuOesteToggle.checked = savedState.toggles.samuOeste;
+                        includeNullIncidentsToggle.checked = savedState.toggles.includeNullIncidents;
+                        primaryIncidentsToggle.checked = savedState.toggles.primaryIncidents;
+                        secondaryIncidentsToggle.checked = savedState.toggles.secondaryIncidents;
+                    }
+
+                    // Re-inicializa a UI com os dados carregados
+                    allUniqueIncidents = new Set(allData.map(row => (row.Incidente || 'NÃO INFORMADO').trim()));
+                    generateReportBtn.disabled = false;
+                    generateResourceReportBtn.disabled = false;
+                    aereoOverrideBtn.disabled = false;
+                    
+                    populateMonthFilters(allData);
+                    populateResourceFilter(allData);
+                    
+                    initialPlaceholder.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
+                    
+                    updateDashboard();
+                    showMessage("Sessão anterior restaurada.");
+                    return true;
+
+                } catch (e) {
+                    console.error("Erro ao carregar estado do localStorage:", e);
+                    localStorage.removeItem(APP_STATE_KEY); // Limpa estado corrompido
+                    return false;
+                }
+            }
+
             // --- INITIAL SETUP ---
-            // Define o ano atual como padrão no seletor de ano ao carregar a página.
-            yearSelector.value = new Date().getFullYear();
+            if (!loadStateFromLocalStorage()) {
+                yearSelector.value = new Date().getFullYear();
+            }
 
             // --- UTILITY FUNCTIONS ---
             function showMessage(message, isError = false, duration = 3000) {
@@ -390,7 +483,9 @@
                     activeGroupFilters.has(filter) ? activeGroupFilters.delete(filter) : activeGroupFilters.add(filter);
                     
                     samuOesteOption.classList.toggle('hidden', !activeGroupFilters.has('Município'));
-                    if (activeGroupFilters.has('Município')) samuOesteToggle.checked = true;
+                    if (!activeGroupFilters.has('Município')) {
+                        samuOesteToggle.checked = false;
+                    }
 
                     const isIncidentActive = activeGroupFilters.has('Incidente');
                     nullIncidentsOption.classList.toggle('hidden', !isIncidentActive);
@@ -633,6 +728,9 @@
 
             // --- CORE FUNCTIONS ---
             function handleDataLoaded(data) {
+                // Limpa o estado antigo ao carregar um novo arquivo
+                localStorage.removeItem(APP_STATE_KEY);
+                
                 data.forEach(row => {
                     row.Atendimentos = parseFloat(row.Atendimentos) || 0;
                     row.Vítimas = parseFloat(row.Vítimas) || 0;
@@ -658,7 +756,7 @@
                 monthListContainer.innerHTML = '';
                 aereoInputsContainer.innerHTML = '';
                 allMonths.clear();
-                activeMonthFilters.clear();
+                // Não limpa os filtros ativos aqui, pois eles podem ter sido carregados do localStorage
                 const foundMonths = new Set(data.map(row => row.DataIni_TARM_Mes).filter(Boolean));
                 const sortedMonths = MONTH_ORDER.filter(m => foundMonths.has(m));
                 
@@ -691,6 +789,7 @@
                 sortedResources.forEach(resource => {
                     const isInteresting = INTERESTING_RESOURCES.includes(resource);
                     const listContainer = isInteresting ? interestingResourcesList : otherResourcesList;
+                    // A verificação de 'checked' agora depende do estado carregado
                     const isChecked = activeResourceTypes.has(resource);
 
                     const label = document.createElement('label');
@@ -843,6 +942,7 @@
                 currentlyDisplayedData = finalData;
                 
                 renderTable(finalData, columnOrder);
+                saveStateToLocalStorage(); // Salva o estado após cada atualização
             }
             
             function applySearch(data, columns) {
@@ -1039,23 +1139,15 @@
                 return p;
             }
 
-            /**
-             * Determina o nome do recurso para os relatórios, considerando o agrupamento.
-             * @param {string} prefixo - O prefixo original do recurso.
-             * @param {boolean} isGrouped - Se o agrupamento de frota (USB, USA, MOTO) está ativo.
-             * @returns {string} O nome do recurso para exibição.
-             */
             function getResourceNameForReport(prefixo, isGrouped) {
                 const p = String(prefixo || '').trim().toUpperCase();
                 const group = getResourceGroup(p);
                 const isSpecialFleet = ['USB', 'USA', 'MOTO'].includes(group);
 
-                // Se for uma frota especial (USB, USA, MOTO) e o agrupamento NÃO estiver ativo, retorna o nome específico.
                 if (isSpecialFleet && !isGrouped) {
-                    return p.replace(/-/g, ' '); // Ex: "USA 01"
+                    return p.replace(/-/g, ' ');
                 }
-                // Em todos os outros casos (frota especial agrupada ou qualquer outro tipo de recurso), retorna o grupo.
-                return group; // Ex: "USA", "BOMBEIRO"
+                return group;
             }
             
             function getFilteredDataForReports() {
@@ -1116,7 +1208,7 @@
 
                     const showPrimary = primaryIncidentsToggle.checked;
                     const showSecondary = secondaryIncidentsToggle.checked;
-                    const isGrouped = groupFleetToggle.checked; // Pega o estado do toggle
+                    const isGrouped = groupFleetToggle.checked;
 
                     SAMU_OESTE_MUNICIPIOS.forEach(municipio => {
                         const municipalData = dataForReport.filter(row => row.Município === municipio);
@@ -1130,7 +1222,6 @@
 
                         const resourceCounts = {};
                         filteredMunicipalData.forEach(row => {
-                            // Usa a nova função centralizada para obter o nome do recurso
                             const resourceName = getResourceNameForReport(row.Prefixo, isGrouped);
                             resourceCounts[resourceName] = (resourceCounts[resourceName] || 0) + row.Atendimentos;
                         });
@@ -1212,7 +1303,7 @@
                     const dataForReport = getFilteredDataForReports();
                     const sortedMonths = MONTH_ORDER.filter(m => activeMonthFilters.has(m));
                     const showTotalColumn = sortedMonths.length > 1;
-                    const isGrouped = groupFleetToggle.checked; // Pega o estado do toggle
+                    const isGrouped = groupFleetToggle.checked;
                     
                     lastReportData = [];
                     const reportPagesHTML = [];
@@ -1221,7 +1312,6 @@
                         const municipalData = dataForReport.filter(row => row.Município === municipio);
                         if (municipalData.length === 0) return;
 
-                        // Usa a nova função centralizada para obter os nomes dos recursos
                         const resources = new Set(municipalData.map(row => getResourceNameForReport(row.Prefixo, isGrouped)));
                         const filteredResources = [...resources].filter(r => activeResourceTypes.has(getResourceGroup(r)));
                         
@@ -1239,7 +1329,6 @@
                         sortedResources.forEach(res => pivotData.set(res, new Map(sortedMonths.map(m => [m, 0]))));
                         
                         municipalData.forEach(row => {
-                            // Usa a nova função centralizada novamente para garantir consistência
                             const resourceName = getResourceNameForReport(row.Prefixo, isGrouped);
                             if (pivotData.has(resourceName)) {
                                 const monthMap = pivotData.get(resourceName);
@@ -1343,6 +1432,7 @@
                         const finalData = applySearch(lastGroupedData, columnOrder);
                         currentlyDisplayedData = finalData;
                         renderTable(finalData, columnOrder);
+                        saveStateToLocalStorage(); // Salva a nova ordem das colunas
                     }
                 }
             });
