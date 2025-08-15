@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análise de Atendimentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Bibliotecas para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .toggle-btn.active {
+            background-color: #2563eb; /* bg-blue-700 */
+            color: white;
+            border-color: #1d4ed8;
+        }
+        .toggle-btn {
+            border: 2px solid transparent;
+        }
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        th .sort-icon {
+            display: inline-block;
+            width: 1em;
+            margin-left: 0.5em;
+            opacity: 0.4;
+        }
+        th.sorted .sort-icon {
+            opacity: 1;
+        }
+        th[draggable] {
+            cursor: move;
+        }
+        .dragging {
+            opacity: 0.5;
+            background: #f0f8ff;
+        }
+        .drag-over {
+            border-right: 2px solid #2563eb;
+        }
+        .report-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 1rem auto;
+            border: 1px #D1D1D1 solid;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        /* Estilos de Impressão Robustos */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .report-page {
+                page-break-after: always;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Cabeçalho -->
+        <header class="bg-white shadow-md rounded-xl p-4 mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <!-- Controles à Esquerda -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <label for="fileInput" class="cursor-pointer bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-sm flex-shrink-0">
+                        Carregar Arquivo
+                    </label>
+                    <input type="file" id="fileInput" class="hidden" accept=".csv, .xls, .xlsx, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    
+                    <div class="relative">
+                         <button id="resource-type-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-3 rounded-lg hover:bg-gray-300 transition-colors text-sm flex items-center gap-2">
+                            Tipo de Recurso
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                         </button>
+                         <div id="resource-type-dropdown" class="hidden absolute z-20 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 p-4">
+                             <h4 class="font-bold text-sm mb-2">Recursos de Interesse</h4>
+                             <div id="interesting-resources-list" class="space-y-2"></div>
+                             <hr class="my-3">
+                             <h4 class="font-bold text-sm mb-2">Outros Recursos</h4>
+                             <div id="other-resources-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                         </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center bg-gray-200 rounded-lg px-2">
+                            <label for="year-selector" class="text-sm font-semibold text-gray-800">Ano:</label>
+                            <input type="text" id="year-selector" class="bg-transparent font-semibold text-gray-800 w-28 py-2 border-none focus:ring-0 text-center">
+                        </div>
+                         <button id="aereo-override-btn" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed" title="Editar dados AÉREO (afeta apenas Cascavel)" disabled>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 10h4a2 2 0 0 1 0 4h-4l-4 7h-3l2 -7h-4l-2 2h-3l2 -4l-2 -4h3l2 2h4l-2 -7h3z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button id="generate-report-btn" class="bg-green-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-700 transition-colors duration-300 shadow-sm w-full sm:w-auto flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm" disabled>
+                        Relatório por Município
+                    </button>
+                    <button id="generate-resource-report-btn" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-sm w-full sm:w-auto flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm" disabled>
+                        Relatório por Recurso
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Placeholder Inicial -->
+        <div id="initial-placeholder" class="text-center py-20 bg-white rounded-xl shadow-md">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2H4a2 2 0 01-2-2zm2-12h8v4h4v8" />
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">Nenhum arquivo carregado</h3>
+            <p class="mt-1 text-sm text-gray-500">Por favor, selecione um arquivo para começar a análise.</p>
+        </div>
+
+        <!-- Conteúdo do Dashboard (inicialmente oculto) -->
+        <main id="dashboard-content" class="hidden">
+            <section id="filter-controls" class="mb-4 bg-white p-4 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-semibold text-gray-800">1. Selecione as colunas para agrupar:</h3>
+                    <div id="metric-toggles" class="flex space-x-2">
+                         <button data-metric="Atendimentos" class="toggle-btn text-xs font-bold py-1 px-3 rounded-full">Atendimentos</button>
+                         <button data-metric="Vítimas" class="toggle-btn text-xs font-bold py-1 px-3 rounded-full">Vítimas</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                    <button data-filter="Incidente" class="toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200">Incidente</button>
+                    <button data-filter="Estabelecimento" class="toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200">Estabelecimento</button>
+                    <button data-filter="Município" class="toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200">Município</button>
+                    <button data-filter="Prefixo" class="toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200">Prefixo</button>
+                    <button data-filter="DataIni_TARM_Mes" class="toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200">Mês</button>
+                </div>
+                <div id="context-options" class="mt-4 space-y-3">
+                    <div id="fleet-group-option" class="p-3 bg-gray-100 rounded-lg">
+                        <label for="groupFleetToggle" class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="groupFleetToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-medium text-gray-700">Agrupar USB, USA e MOTO</span>
+                        </label>
+                    </div>
+                    <div id="samu-oeste-option" class="p-3 bg-gray-100 rounded-lg hidden">
+                        <label for="samuOesteToggle" class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="samuOesteToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-medium text-gray-700">Filtrar por SAMU OESTE</span>
+                        </label>
+                    </div>
+                    <div id="null-incidents-option" class="p-3 bg-gray-100 rounded-lg hidden">
+                        <label for="includeNullIncidentsToggle" class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="includeNullIncidentsToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-medium text-gray-700">Incluir incidentes nulos</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section id="month-filter-section" class="mb-4 bg-white p-4 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-semibold text-gray-800">2. Selecione os meses para a análise:</h3>
+                    <button id="select-all-months-btn" class="text-sm bg-blue-100 text-blue-800 font-semibold py-1 px-3 rounded-md hover:bg-blue-200">Selecionar Todos</button>
+                </div>
+                <div id="month-list" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
+            </section>
+
+            <section id="global-incident-filters" class="mb-8 bg-white p-4 rounded-xl shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">3. Filtre os tipos de incidente:</h3>
+                <div class="p-3 bg-gray-100 rounded-lg">
+                    <div class="flex flex-col sm:flex-row sm:space-x-8 space-y-2 sm:space-y-0">
+                         <label for="primaryIncidentsToggle" class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="primaryIncidentsToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-medium text-gray-700">Incidente primário</span>
+                        </label>
+                         <label for="secondaryIncidentsToggle" class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="secondaryIncidentsToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-medium text-gray-700">Incidente secundário</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="bg-white p-6 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Dados Agregados</h3>
+                    <button id="download-btn" class="p-2 rounded-full hover:bg-gray-200" title="Baixar tabela como CSV">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+                 <input type="text" id="searchInput" class="w-full p-2 border border-gray-300 rounded-md mb-4" placeholder="Pesquisar nos dados agregados...">
+                
+                <div id="top-scrollbar-wrapper" class="overflow-x-auto overflow-y-hidden">
+                    <div id="top-scrollbar-inner" style="height: 1px;"></div>
+                </div>
+                <div id="table-container" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50"><tr></tr></thead>
+                        <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modal para Relatórios -->
+    <div id="report-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-gray-100 rounded-lg shadow-xl w-full h-full max-w-7xl overflow-y-auto p-4">
+            <div class="flex justify-between items-center mb-4 sticky top-0 bg-gray-100 py-2 z-10 no-print">
+                <h2 id="report-modal-title" class="text-2xl font-bold text-gray-800">Relatórios</h2>
+                <div class="flex items-center gap-2">
+                     <button id="export-excel-btn" class="bg-green-600 text-white font-bold p-2 rounded-lg hover:bg-green-700" title="Exportar para Planilha (XLSX)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                          <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                        </svg>
+                     </button>
+                     <button id="print-report-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Imprimir PDF</button>
+                     <button id="close-report-modal-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">&times;</button>
+                </div>
+            </div>
+            <div id="report-content" class="space-y-8">
+                <!-- Conteúdo do relatório será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Edição Aéreo -->
+    <div id="aereo-override-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-800">Edição Manual de Dados Aéreos</h2>
+                <button id="close-aereo-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center justify-between bg-gray-100 p-3 rounded-lg mb-4">
+                    <label for="use-aereo-overrides-toggle" class="font-semibold text-gray-700">Usar dados manuais (para Cascavel)</label>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="use-aereo-overrides-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                        <label for="use-aereo-overrides-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                    <style>.toggle-checkbox:checked { right: 0; border-color: #48bb78; } .toggle-checkbox:checked + .toggle-label { background-color: #48bb78; }</style>
+                </div>
+                <div id="aereo-inputs-container" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    <!-- Inputs serão inseridos aqui -->
+                </div>
+            </div>
+            <div class="flex justify-end p-4 bg-gray-50 border-t rounded-b-lg">
+                <button id="save-aereo-modal-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="hidden fixed bottom-5 right-5 bg-gray-800 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300"></div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- ELEMENT SELECTORS ---
+            const fileInput = document.getElementById('fileInput');
+            const initialPlaceholder = document.getElementById('initial-placeholder');
+            const dashboardContent = document.getElementById('dashboard-content');
+            const searchInput = document.getElementById('searchInput');
+            const filterControls = document.getElementById('filter-controls');
+            const monthListContainer = document.getElementById('month-list');
+            const fleetGroupOption = document.getElementById('fleet-group-option');
+            const groupFleetToggle = document.getElementById('groupFleetToggle');
+            const samuOesteOption = document.getElementById('samu-oeste-option');
+            const samuOesteToggle = document.getElementById('samuOesteToggle');
+            const nullIncidentsOption = document.getElementById('null-incidents-option');
+            const includeNullIncidentsToggle = document.getElementById('includeNullIncidentsToggle');
+            const primaryIncidentsToggle = document.getElementById('primaryIncidentsToggle');
+            const secondaryIncidentsToggle = document.getElementById('secondaryIncidentsToggle');
+            const selectAllMonthsBtn = document.getElementById('select-all-months-btn');
+            const tableHead = document.querySelector('table thead');
+            const downloadBtn = document.getElementById('download-btn');
+            const metricToggles = document.getElementById('metric-toggles');
+            const generateReportBtn = document.getElementById('generate-report-btn');
+            const generateResourceReportBtn = document.getElementById('generate-resource-report-btn');
+            const reportModal = document.getElementById('report-modal');
+            const reportModalTitle = document.getElementById('report-modal-title');
+            const reportContent = document.getElementById('report-content');
+            const closeReportModalBtn = document.getElementById('close-report-modal-btn');
+            const printReportBtn = document.getElementById('print-report-btn');
+            const exportExcelBtn = document.getElementById('export-excel-btn');
+            const topScrollbarWrapper = document.getElementById('top-scrollbar-wrapper');
+            const topScrollbarInner = document.getElementById('top-scrollbar-inner');
+            const tableContainer = document.getElementById('table-container');
+            const yearSelector = document.getElementById('year-selector');
+            const resourceTypeBtn = document.getElementById('resource-type-btn');
+            const resourceTypeDropdown = document.getElementById('resource-type-dropdown');
+            const interestingResourcesList = document.getElementById('interesting-resources-list');
+            const otherResourcesList = document.getElementById('other-resources-list');
+            const aereoOverrideBtn = document.getElementById('aereo-override-btn');
+            const aereoOverrideModal = document.getElementById('aereo-override-modal');
+            const closeAereoModalBtn = document.getElementById('close-aereo-modal-btn');
+            const saveAereoModalBtn = document.getElementById('save-aereo-modal-btn');
+            const useAereoOverridesToggle = document.getElementById('use-aereo-overrides-toggle');
+            const aereoInputsContainer = document.getElementById('aereo-inputs-container');
+
+
+            // --- STATE VARIABLES ---
+            let allData = [];
+            let lastGroupedData = [];
+            let currentlyDisplayedData = [];
+            let allUniqueIncidents = new Set();
+            let activeGroupFilters = new Set();
+            let allMonths = new Set();
+            let activeMonthFilters = new Set();
+            let activeMetrics = new Set(['Atendimentos', 'Vítimas']);
+            let currentSort = { key: null, direction: 'asc' };
+            let columnOrder = [];
+            let draggedColumnKey = null;
+            let lastReportData = [];
+            let aereoOverrides = {};
+            let useAereoOverrides = false;
+
+            const INTERESTING_RESOURCES = ['USB', 'USA', 'FROTA', 'MOTO', 'AÉREO', 'BOMBEIRO', 'SIATE'];
+            let activeResourceTypes = new Set(INTERESTING_RESOURCES);
+
+            const SAMU_OESTE_MUNICIPIOS = [
+                'Anahy', 'Assis Chateaubriand', 'Boa Vista da Aparecida', 'Braganey', 'Cafelândia', 'Campo Bonito', 
+                'Capitão Leônidas Marques', 'Cascavel', 'Catanduvas', 'Céu Azul', 'Corbélia', 'Diamante D\'Oeste', 
+                'Diamante do Sul', 'Entre Rios do Oeste', 'Espigão Alto do Iguaçu', 'Formosa do Oeste', 'Guaíra', 
+                'Guaraniaçu', 'Ibema', 'Iguatu', 'Iracema do Oeste', 'Jesuítas', 'Lindoeste', 'Marechal Cândido Rondon', 
+                'Maripá', 'Mercedes', 'Nova Aurora', 'Nova Santa Rosa', 'Ouro Verde do Oeste', 'Palotina', 
+                'Pato Bragado', 'Quatro Pontes', 'Quedas do Iguaçu', 'Santa Helena', 'Santa Lúcia', 'Santa Tereza do Oeste', 
+                'São José das Palmeiras', 'São Pedro do Iguaçu', 'Terra Roxa', 'Toledo', 'Três Barras do Paraná', 
+                'Tupãssi', 'Vera Cruz do Oeste'
+            ].sort();
+
+            const SECONDARY_INCIDENTS = [
+                'APOIO TERRESTRE AEROMÉDICO', 'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 'ORIENTAÇÃO', 'REGULAÇÃO DE VAGA',
+                'RETORNO DE EXAME', 'TRANSFERÊNCIA', 'TRANSFERÊNCIA AEROMÉDICO', 'TRANSFERÊNCIA COVID-19',
+                'TRANSFERÊNCIA VAGA ZERO', 'TRANSPORTE COMBINADO', 'TRANSPORTE PARA EXAME'
+            ].map(inc => inc.toUpperCase());
+            
+            const MONTH_ORDER = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            
+            // --- INITIAL SETUP ---
+            // Define o ano atual como padrão no seletor de ano ao carregar a página.
+            yearSelector.value = new Date().getFullYear();
+
+            // --- UTILITY FUNCTIONS ---
+            function showMessage(message, isError = false, duration = 3000) {
+                const messageBox = document.getElementById('message-box');
+                if (!messageBox) return;
+                messageBox.textContent = message;
+                messageBox.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300 ${isError ? 'bg-red-500' : 'bg-gray-800'}`;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, duration);
+            }
+
+            // --- EVENT LISTENERS ---
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        handleDataLoaded(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
+                    } catch (error) { console.error("Erro:", error); showMessage("Não foi possível ler o arquivo.", true); }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+            
+            filterControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('toggle-btn') && e.target.dataset.filter) {
+                    const filter = e.target.dataset.filter;
+                    activeGroupFilters.has(filter) ? activeGroupFilters.delete(filter) : activeGroupFilters.add(filter);
+                    
+                    samuOesteOption.classList.toggle('hidden', !activeGroupFilters.has('Município'));
+                    if (activeGroupFilters.has('Município')) samuOesteToggle.checked = true;
+
+                    const isIncidentActive = activeGroupFilters.has('Incidente');
+                    nullIncidentsOption.classList.toggle('hidden', !isIncidentActive);
+
+                    if (!isIncidentActive) {
+                        includeNullIncidentsToggle.checked = false;
+                    }
+                    
+                    updateDashboard();
+                }
+            });
+            
+            metricToggles.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    const metric = e.target.dataset.metric;
+                    activeMetrics.has(metric) ? activeMetrics.delete(metric) : activeMetrics.add(metric);
+                    updateDashboard();
+                }
+            });
+
+            groupFleetToggle.addEventListener('change', updateDashboard);
+            samuOesteToggle.addEventListener('change', updateDashboard);
+            includeNullIncidentsToggle.addEventListener('change', updateDashboard);
+            primaryIncidentsToggle.addEventListener('change', updateDashboard);
+            secondaryIncidentsToggle.addEventListener('change', updateDashboard);
+
+
+            monthListContainer.addEventListener('click', (e) => {
+                if(e.target.classList.contains('toggle-btn')) {
+                    const month = e.target.dataset.month;
+                    activeMonthFilters.has(month) ? activeMonthFilters.delete(month) : activeMonthFilters.add(month);
+                    updateDashboard();
+                }
+            });
+
+            selectAllMonthsBtn.addEventListener('click', () => {
+                if (activeMonthFilters.size === allMonths.size) {
+                    activeMonthFilters.clear();
+                } else {
+                    activeMonthFilters = new Set(allMonths);
+                }
+                updateDashboard();
+            });
+
+            tableHead.addEventListener('click', (e) => {
+                const headerCell = e.target.closest('th');
+                if (!headerCell || !headerCell.classList.contains('sortable')) return;
+                const key = headerCell.dataset.key;
+                currentSort.direction = (currentSort.key === key && currentSort.direction === 'asc') ? 'desc' : 'asc';
+                currentSort.key = key;
+                updateDashboard();
+            });
+
+            downloadBtn.addEventListener('click', downloadCSV);
+            
+            generateReportBtn.addEventListener('click', generateMunicipalReports);
+            generateResourceReportBtn.addEventListener('click', generateResourceReport);
+            closeReportModalBtn.addEventListener('click', () => reportModal.classList.add('hidden'));
+            
+            resourceTypeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resourceTypeDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!resourceTypeDropdown.classList.contains('hidden') && !resourceTypeDropdown.contains(e.target) && e.target !== resourceTypeBtn) {
+                    resourceTypeDropdown.classList.add('hidden');
+                }
+            });
+            
+            resourceTypeDropdown.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const resource = e.target.dataset.resource;
+                    if (e.target.checked) {
+                        activeResourceTypes.add(resource);
+                    } else {
+                        activeResourceTypes.delete(resource);
+                    }
+                    updateDashboard();
+                }
+            });
+
+            aereoOverrideBtn.addEventListener('click', () => {
+                updateAereoModalUI();
+                aereoOverrideModal.classList.remove('hidden');
+            });
+            closeAereoModalBtn.addEventListener('click', () => aereoOverrideModal.classList.add('hidden'));
+            saveAereoModalBtn.addEventListener('click', () => {
+                aereoOverrideModal.classList.add('hidden');
+                updateDashboard();
+            });
+            useAereoOverridesToggle.addEventListener('change', (e) => {
+                useAereoOverrides = e.target.checked;
+            });
+            aereoInputsContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('aereo-override-input')) {
+                    const month = e.target.dataset.month;
+                    const value = e.target.value;
+                    if (value) {
+                        aereoOverrides[month] = parseFloat(value);
+                    } else {
+                        delete aereoOverrides[month];
+                    }
+                }
+            });
+
+            printReportBtn.addEventListener('click', () => {
+                if (lastReportData.length === 0) {
+                    showMessage("Nenhum dado de relatório para imprimir.", true);
+                    return;
+                }
+
+                showMessage("Gerando PDF, por favor aguarde...");
+                printReportBtn.disabled = true;
+                printReportBtn.textContent = 'Gerando...';
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                    const isResourceReport = lastReportData[0].type === 'resource';
+
+                    lastReportData.forEach((reportData, index) => {
+                        if (index > 0) doc.addPage();
+
+                        doc.setFontSize(14);
+                        doc.text(reportData.title, 105, 20, { align: 'center' });
+
+                        if (isResourceReport) {
+                            const bodyData = [...reportData.table.body, reportData.table.foot];
+                            const columnStyles = {};
+                            for (let i = 1; i < reportData.table.head.length; i++) {
+                                columnStyles[i] = { halign: 'center' };
+                            }
+
+                            doc.autoTable({
+                                head: [reportData.table.head],
+                                body: bodyData,
+                                startY: 30,
+                                theme: 'grid',
+                                headStyles: { fillColor: [41, 52, 64], textColor: 255, halign: 'center' },
+                                columnStyles: columnStyles,
+                                alternateRowStyles: { fillColor: [249, 250, 251] },
+                                didParseCell: function(data) {
+                                    if (data.section === 'head' && data.column.index === 0) {
+                                        data.cell.styles.halign = 'left';
+                                    }
+                                    if (data.section === 'body' && data.row.index === (bodyData.length - 1)) {
+                                        data.cell.styles.fontStyle = 'bold';
+                                        data.cell.styles.fillColor = [229, 231, 235];
+                                        data.cell.styles.textColor = 0;
+                                    }
+                                }
+                            });
+                        } else {
+                            doc.autoTable({
+                                body: reportData.summary,
+                                startY: 30,
+                                theme: 'grid',
+                                columnStyles: { 1: { halign: 'center' } }
+                            });
+                            doc.autoTable({
+                                head: [['RECURSOS DESPACHADOS', reportData.totalRecursos]],
+                                body: reportData.resources,
+                                startY: doc.autoTable.previous.finalY + 10,
+                                theme: 'grid',
+                                headStyles: { fontStyle: 'bold', fillColor: [41, 52, 64], textColor: 255, halign: 'center' },
+                                columnStyles: { 1: { halign: 'center' } },
+                                alternateRowStyles: { fillColor: [249, 250, 251] }
+                            });
+                            doc.autoTable({
+                                head: [['INCIDENTE', 'QUANTIDADE']],
+                                body: reportData.incidents,
+                                startY: doc.autoTable.previous.finalY + 10, 
+                                theme: 'grid',
+                                headStyles: { fontStyle: 'bold', fillColor: [41, 52, 64], textColor: 255, halign: 'center' },
+                                columnStyles: { 1: { halign: 'center' } },
+                                alternateRowStyles: { fillColor: [249, 250, 251] }
+                            });
+                        }
+                    });
+
+                    const reportType = isResourceReport ? 'Recursos' : 'Municipios';
+                    doc.save(`Relatorio_${reportType}_${yearSelector.value}.pdf`);
+                    showMessage("PDF gerado com sucesso!");
+
+                } catch (error) {
+                    console.error("Erro ao gerar PDF:", error);
+                    showMessage("Ocorreu um erro ao gerar o PDF.", true);
+                } finally {
+                    printReportBtn.disabled = false;
+                    printReportBtn.textContent = 'Imprimir PDF';
+                }
+            });
+
+            exportExcelBtn.addEventListener('click', () => {
+                if (lastReportData.length === 0) {
+                    showMessage("Nenhum dado de relatório para exportar.", true);
+                    return;
+                }
+                
+                showMessage("Gerando planilha, por favor aguarde...");
+                try {
+                    const wb = XLSX.utils.book_new();
+                    const isResourceReport = lastReportData[0].type === 'resource';
+
+                    lastReportData.forEach(reportData => {
+                        let sheetName = reportData.municipio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31);
+                        const ws_data = [];
+                        
+                        ws_data.push([reportData.title]);
+                        ws_data.push([]);
+
+                        if (isResourceReport) {
+                            ws_data.push(reportData.table.head);
+                            reportData.table.body.forEach(row => ws_data.push(row));
+                            ws_data.push(reportData.table.foot);
+                        } else {
+                            reportData.summary.forEach(row => ws_data.push(row));
+                            ws_data.push([]);
+                            ws_data.push(['RECURSOS DESPACHADOS', reportData.totalRecursos]);
+                            reportData.resources.forEach(row => ws_data.push(row));
+                            ws_data.push([]);
+                            ws_data.push(['INCIDENTE', 'QUANTIDADE']);
+                            reportData.incidents.forEach(row => ws_data.push(row));
+                        }
+                        
+                        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    });
+
+                    const reportType = isResourceReport ? 'Recursos' : 'Municipios';
+                    XLSX.writeFile(wb, `Relatorio_${reportType}_${yearSelector.value}.xlsx`);
+                    showMessage("Planilha exportada com sucesso!");
+                } catch (error) {
+                    console.error("Erro ao gerar Excel:", error);
+                    showMessage("Ocorreu um erro ao gerar a planilha.", true);
+                }
+            });
+
+
+            // --- CORE FUNCTIONS ---
+            function handleDataLoaded(data) {
+                data.forEach(row => {
+                    row.Atendimentos = parseFloat(row.Atendimentos) || 0;
+                    row.Vítimas = parseFloat(row.Vítimas) || 0;
+                });
+                allData = data;
+                allUniqueIncidents = new Set(allData.map(row => (row.Incidente || 'NÃO INFORMADO').trim()));
+                
+                primaryIncidentsToggle.checked = true;
+                secondaryIncidentsToggle.checked = true;
+                groupFleetToggle.checked = true;
+                generateReportBtn.disabled = false;
+                generateResourceReportBtn.disabled = false;
+                aereoOverrideBtn.disabled = false;
+
+                populateMonthFilters(data);
+                populateResourceFilter(data);
+                initialPlaceholder.classList.add('hidden');
+                dashboardContent.classList.remove('hidden');
+                updateDashboard();
+            }
+
+            function populateMonthFilters(data) {
+                monthListContainer.innerHTML = '';
+                aereoInputsContainer.innerHTML = '';
+                allMonths.clear();
+                activeMonthFilters.clear();
+                const foundMonths = new Set(data.map(row => row.DataIni_TARM_Mes).filter(Boolean));
+                const sortedMonths = MONTH_ORDER.filter(m => foundMonths.has(m));
+                
+                sortedMonths.forEach(month => {
+                    allMonths.add(month);
+                    const button = document.createElement('button');
+                    button.className = 'toggle-btn w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-2 rounded-lg transition-colors duration-200 text-sm';
+                    button.dataset.month = month;
+                    button.textContent = month;
+                    monthListContainer.appendChild(button);
+
+                    const inputRow = document.createElement('div');
+                    inputRow.className = 'flex items-center gap-4 p-1';
+                    inputRow.innerHTML = `
+                        <label class="w-1/4 font-medium text-gray-700">${month}</label>
+                        <input type="number" min="0" data-month="${month}" class="aereo-override-input w-3/4 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Nº de atendimentos">
+                    `;
+                    aereoInputsContainer.appendChild(inputRow);
+                });
+            }
+
+            function populateResourceFilter(data) {
+                const allResourceGroups = new Set(data.map(row => getResourceGroup(row.Prefixo)));
+                
+                interestingResourcesList.innerHTML = '';
+                otherResourcesList.innerHTML = '';
+
+                const sortedResources = [...allResourceGroups].sort();
+
+                sortedResources.forEach(resource => {
+                    const isInteresting = INTERESTING_RESOURCES.includes(resource);
+                    const listContainer = isInteresting ? interestingResourcesList : otherResourcesList;
+                    const isChecked = activeResourceTypes.has(resource);
+
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center space-x-2 text-sm cursor-pointer';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = isChecked;
+                    checkbox.dataset.resource = resource;
+                    checkbox.className = 'h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500';
+                    
+                    const span = document.createElement('span');
+                    span.textContent = resource;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(span);
+                    listContainer.appendChild(label);
+                });
+            }
+            
+            function applyAereoOverrides(data) {
+                const dataWithoutCascavelAereo = data.filter(row => {
+                    return !(getResourceGroup(row.Prefixo) === 'AÉREO' && row.Município === 'Cascavel');
+                });
+
+                for (const month in aereoOverrides) {
+                    const value = parseFloat(aereoOverrides[month]);
+                    if (!isNaN(value) && value >= 0) {
+                        dataWithoutCascavelAereo.push({
+                            Atendimentos: value,
+                            Vítimas: value,
+                            DataIni_TARM_Mes: month,
+                            Prefixo: 'AÉREO (MANUAL)',
+                            Município: 'Cascavel',
+                            Incidente: 'NÃO INFORMADO',
+                            Estabelecimento: 'NÃO INFORMADO'
+                        });
+                    }
+                }
+                return dataWithoutCascavelAereo;
+            }
+
+            function updateAereoModalUI() {
+                useAereoOverridesToggle.checked = useAereoOverrides;
+                aereoInputsContainer.querySelectorAll('.aereo-override-input').forEach(input => {
+                    const month = input.dataset.month;
+                    input.value = aereoOverrides[month] || '';
+                });
+            }
+
+            function preprocessData(data) {
+                let processedData = [...data];
+
+                const showPrimary = primaryIncidentsToggle.checked;
+                const showSecondary = secondaryIncidentsToggle.checked;
+
+                if (!showPrimary && !showSecondary) {
+                    processedData = []; 
+                } else if (!showPrimary || !showSecondary) { 
+                    processedData = processedData.filter(row => {
+                        const incident = (row.Incidente || '').trim().toUpperCase();
+                        const isSecondary = SECONDARY_INCIDENTS.includes(incident);
+                        if (showPrimary) return !isSecondary;
+                        if (showSecondary) return isSecondary;
+                        return false;
+                    });
+                }
+
+                if (samuOesteToggle.checked && activeGroupFilters.has('Município')) {
+                     processedData = processedData.filter(row => SAMU_OESTE_MUNICIPIOS.includes(row.Município));
+                }
+
+                processedData = processedData.filter(row => {
+                    const estabelecimento = String(row.Estabelecimento || '').trim().toUpperCase();
+                    const prefixo = String(row.Prefixo || '').trim().toUpperCase();
+                    
+                    if (estabelecimento.startsWith('PENDENTE') || estabelecimento === 'NÃO INFORMADO') return false;
+                    
+                    const excludedPrefixos = ['PENDENTE', 'NÃO INFORMADO', 'USB RESERVA', 'USA EXTRA'];
+                    if (excludedPrefixos.some(p => prefixo.startsWith(p))) return false;
+
+                    return true;
+                });
+
+                return processedData.map(row => {
+                    const newRow = {...row};
+                    if (newRow.Prefixo) newRow.Prefixo = String(newRow.Prefixo).trim().replace(/-/g, ' ');
+                    if (String(newRow.Estabelecimento || '').trim().toUpperCase().startsWith('PRIVADO')) newRow.Estabelecimento = 'PRIVADO';
+
+                    if (activeGroupFilters.has('Prefixo')) {
+                        const originalPrefixo = String(newRow.Prefixo || '').trim().toUpperCase();
+                        const resourceGroup = getResourceGroup(originalPrefixo);
+                        const isSpecialResource = ['USB', 'USA', 'MOTO'].includes(resourceGroup);
+
+                        if (!isSpecialResource || groupFleetToggle.checked) {
+                            newRow.Prefixo = resourceGroup;
+                        }
+                    }
+                    return newRow;
+                });
+            }
+
+            function updateDashboard() {
+                if (!allData || !allData.length) return;
+
+                document.querySelectorAll('#filter-controls .toggle-btn[data-filter]').forEach(btn => btn.classList.toggle('active', activeGroupFilters.has(btn.dataset.filter)));
+                document.querySelectorAll('#month-list .toggle-btn').forEach(btn => btn.classList.toggle('active', activeMonthFilters.has(btn.dataset.month)));
+                document.querySelectorAll('#metric-toggles button').forEach(btn => btn.classList.toggle('active', activeMetrics.has(btn.dataset.metric)));
+
+                selectAllMonthsBtn.textContent = activeMonthFilters.size === allMonths.size ? 'Limpar Seleção' : 'Selecionar Todos';
+
+                let dataForProcessing = [...allData];
+                if (useAereoOverrides) {
+                    dataForProcessing = applyAereoOverrides(dataForProcessing);
+                }
+                
+                dataForProcessing = dataForProcessing.filter(row => activeResourceTypes.has(getResourceGroup(row.Prefixo)));
+
+                const dataToProcess = preprocessData(dataForProcessing);
+                const monthlyFilteredData = dataToProcess.filter(row => activeMonthFilters.has(row.DataIni_TARM_Mes));
+                const groupByKeys = [...activeGroupFilters];
+                
+                let groupedData = [];
+                if (activeMonthFilters.size > 0 && activeGroupFilters.size > 0) {
+                    groupedData = groupData(monthlyFilteredData, groupByKeys);
+                }
+                
+                const columnsToShow = [...groupByKeys, ...activeMetrics];
+                
+                const targetColumnSet = new Set(columnsToShow);
+                columnOrder = columnOrder.filter(col => targetColumnSet.has(col));
+                const existingColumnSet = new Set(columnOrder);
+                const newColumns = columnsToShow.filter(c => !existingColumnSet.has(c));
+                const newGroupKeys = newColumns.filter(c => groupByKeys.includes(c));
+                const newMetrics = newColumns.filter(c => activeMetrics.has(c));
+                let firstMetricIndex = columnOrder.findIndex(c => activeMetrics.has(c));
+                if (firstMetricIndex === -1) firstMetricIndex = columnOrder.length;
+                columnOrder.splice(firstMetricIndex, 0, ...newGroupKeys);
+                columnOrder.push(...newMetrics);
+
+                if (!currentSort.key || !columnOrder.includes(currentSort.key)) {
+                    currentSort.key = columnOrder.find(c => activeGroupFilters.has(c)) || null;
+                    currentSort.direction = 'asc';
+                }
+
+                const sortedData = sortData(groupedData, currentSort.key, currentSort.direction);
+                
+                lastGroupedData = sortedData;
+                const finalData = applySearch(lastGroupedData, columnOrder);
+                currentlyDisplayedData = finalData;
+                
+                renderTable(finalData, columnOrder);
+            }
+            
+            function applySearch(data, columns) {
+                const term = searchInput.value.toLowerCase();
+                if (!term) return data;
+                return data.filter(row => 
+                    columns.some(col => String(row[col] || '').toLowerCase().includes(term))
+                );
+            }
+
+            searchInput.addEventListener('keyup', () => {
+                const columnsToShow = columnOrder;
+                const filteredData = applySearch(lastGroupedData, columnsToShow);
+                currentlyDisplayedData = filteredData;
+                renderTable(filteredData, columnsToShow);
+            });
+
+
+            function sortData(data, key, direction) {
+                if (!key) return data;
+                return [...data].sort((a, b) => {
+                    if (key === 'DataIni_TARM_Mes') {
+                        return (MONTH_ORDER.indexOf(a[key]) - MONTH_ORDER.indexOf(b[key])) * (direction === 'asc' ? 1 : -1);
+                    }
+                    const valA = a[key];
+                    const valB = b[key];
+                    const isNumeric = !isNaN(parseFloat(valA)) && isFinite(valA) && !isNaN(parseFloat(valB)) && isFinite(valB);
+                    if (isNumeric) return (valA - valB) * (direction === 'asc' ? 1 : -1);
+                    return String(valA).localeCompare(String(valB)) * (direction === 'asc' ? 1 : -1);
+                });
+            }
+            
+            function groupData(data, groupByKeys) {
+                if (groupByKeys.length === 0) return [];
+                const aggregationMap = new Map();
+                data.forEach(row => {
+                    const key = groupByKeys.map(k => (row[k] || 'NÃO INFORMADO').trim()).join('||');
+                    if (!aggregationMap.has(key)) {
+                        const newEntry = {};
+                        groupByKeys.forEach(k => { newEntry[k] = (row[k] || 'NÃO INFORMADO').trim(); });
+                        newEntry.Atendimentos = 0;
+                        newEntry.Vítimas = 0;
+                        aggregationMap.set(key, newEntry);
+                    }
+                    const entry = aggregationMap.get(key);
+                    entry.Atendimentos += row.Atendimentos;
+                    entry.Vítimas += row.Vítimas;
+                });
+                
+                if (includeNullIncidentsToggle.checked && activeGroupFilters.has('Incidente')) {
+                    let incidentsToConsider = [...allUniqueIncidents];
+                    const showPrimary = primaryIncidentsToggle.checked;
+                    const showSecondary = secondaryIncidentsToggle.checked;
+                    
+                    if (showPrimary && !showSecondary) incidentsToConsider = incidentsToConsider.filter(inc => !SECONDARY_INCIDENTS.includes(inc.toUpperCase()));
+                    if (!showPrimary && showSecondary) incidentsToConsider = incidentsToConsider.filter(inc => SECONDARY_INCIDENTS.includes(inc.toUpperCase()));
+                    if (!showPrimary && !showSecondary) incidentsToConsider = [];
+
+                    const otherGroupKeys = groupByKeys.filter(k => k !== 'Incidente');
+                    const uniqueOtherCombinations = new Map();
+                    
+                    data.forEach(row => {
+                        const key = otherGroupKeys.map(k => (row[k] || 'NÃO INFORMADO').trim()).join('||');
+                        if (!uniqueOtherCombinations.has(key)) {
+                            const comboObject = {};
+                            otherGroupKeys.forEach(k => { comboObject[k] = (row[k] || 'NÃO INFORMADO').trim(); });
+                            uniqueOtherCombinations.set(key, comboObject);
+                        }
+                    });
+
+                    if (otherGroupKeys.length === 0 && uniqueOtherCombinations.size === 0) {
+                         uniqueOtherCombinations.set('', {});
+                    }
+
+                    uniqueOtherCombinations.forEach((comboObject) => {
+                        incidentsToConsider.forEach(incident => {
+                            const keyParts = {...comboObject, Incidente: incident};
+                            const fullKey = groupByKeys.map(k => keyParts[k] || 'NÃO INFORMADO').join('||');
+                            
+                            if (!aggregationMap.has(fullKey)) {
+                                const nullEntry = { ...comboObject, Incidente: incident, Atendimentos: 0, Vítimas: 0 };
+                                aggregationMap.set(fullKey, nullEntry);
+                            }
+                        });
+                    });
+                }
+
+                return Array.from(aggregationMap.values());
+            }
+
+            function renderTable(data, headers) {
+                const tableHeadContent = document.querySelector('table thead');
+                const tableBody = document.querySelector('table tbody');
+                tableHeadContent.innerHTML = ''; 
+                tableBody.innerHTML = '';
+
+                if (activeGroupFilters.size === 0) {
+                     tableBody.innerHTML = `<tr><td colspan="1" class="text-center py-10 text-gray-500">Selecione uma ou mais colunas na Etapa 1 para agrupar os dados.</td></tr>`;
+                     return;
+                }
+                
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.className = 'sortable px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                    th.dataset.key = header;
+                    th.textContent = header === 'DataIni_TARM_Mes' ? 'Mês' : header;
+                    th.draggable = true;
+                    const icon = document.createElement('span');
+                    icon.className = 'sort-icon';
+                    if (currentSort.key === header) {
+                        th.classList.add('sorted');
+                        icon.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
+                    }
+                    th.appendChild(icon);
+                    tr.appendChild(th);
+                });
+                tableHeadContent.appendChild(tr);
+
+                if (activeMonthFilters.size === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-10 text-gray-500">Selecione um ou mais meses para visualizar os dados.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700';
+                        td.textContent = row[header] !== undefined ? row[header] : '';
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+
+                 if (data.length === 0 && activeGroupFilters.size > 0) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = headers.length;
+                    td.className = 'text-center py-10 text-gray-500';
+                    td.textContent = 'Nenhum resultado encontrado para os filtros selecionados.';
+                    tr.appendChild(td);
+                    tableBody.appendChild(td);
+                }
+
+                const table = tableContainer.querySelector('table');
+                if (table) {
+                    topScrollbarInner.style.width = `${table.scrollWidth}px`;
+                }
+            }
+            
+            function downloadCSV() {
+                if (currentlyDisplayedData.length === 0) {
+                    showMessage("Não há dados na tabela para baixar.", true);
+                    return;
+                }
+                
+                const headers = columnOrder;
+                const csvRows = [headers.join(';')];
+
+                for (const row of currentlyDisplayedData) {
+                    const values = headers.map(header => {
+                        let cell = row[header] === null || row[header] === undefined ? '' : row[header];
+                        cell = String(cell).replace(/"/g, '""');
+                        if (/[";\n]/.test(cell)) cell = `"${cell}"`;
+                        return cell;
+                    });
+                    csvRows.push(values.join(';'));
+                }
+
+                const csvString = '\uFEFF' + csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'dados_agregados.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // --- REPORT GENERATION ---
+            function getResourceGroup(prefixo) {
+                const p = String(prefixo || '').trim().toUpperCase();
+                if (p.startsWith('PRIVADO')) return 'PRIVADO';
+                if (p === 'SEM ENCAMINHAMENTO') return 'SEM ENCAMINHAMENTO';
+                if (['USB 20', 'USB 21', 'USB 30', 'USB 31'].includes(p) || p.startsWith('FROTA')) return 'FROTA';
+                if (p.startsWith('USB')) return 'USB';
+                if (p.startsWith('USA')) return 'USA';
+                if (p.startsWith('MOTO')) return 'MOTO';
+                if (p.startsWith('SIATE')) return 'SIATE';
+                if (p.startsWith('BOMBEIRO')) return 'BOMBEIRO';
+                if (p.startsWith('PRHEM') || p.startsWith('AÉREO (MANUAL)')) return 'AÉREO';
+                return p;
+            }
+
+            /**
+             * Determina o nome do recurso para os relatórios, considerando o agrupamento.
+             * @param {string} prefixo - O prefixo original do recurso.
+             * @param {boolean} isGrouped - Se o agrupamento de frota (USB, USA, MOTO) está ativo.
+             * @returns {string} O nome do recurso para exibição.
+             */
+            function getResourceNameForReport(prefixo, isGrouped) {
+                const p = String(prefixo || '').trim().toUpperCase();
+                const group = getResourceGroup(p);
+                const isSpecialFleet = ['USB', 'USA', 'MOTO'].includes(group);
+
+                // Se for uma frota especial (USB, USA, MOTO) e o agrupamento NÃO estiver ativo, retorna o nome específico.
+                if (isSpecialFleet && !isGrouped) {
+                    return p.replace(/-/g, ' '); // Ex: "USA 01"
+                }
+                // Em todos os outros casos (frota especial agrupada ou qualquer outro tipo de recurso), retorna o grupo.
+                return group; // Ex: "USA", "BOMBEIRO"
+            }
+            
+            function getFilteredDataForReports() {
+                let dataForProcessing = [...allData];
+                if (useAereoOverrides) {
+                    dataForProcessing = applyAereoOverrides(dataForProcessing);
+                }
+
+                const showPrimary = primaryIncidentsToggle.checked;
+                const showSecondary = secondaryIncidentsToggle.checked;
+
+                if (!showPrimary && !showSecondary) {
+                    dataForProcessing = []; 
+                } else if (!showPrimary || !showSecondary) { 
+                    dataForProcessing = dataForProcessing.filter(row => {
+                        const incident = (row.Incidente || '').trim().toUpperCase();
+                        const isSecondary = SECONDARY_INCIDENTS.includes(incident);
+                        if (showPrimary) return !isSecondary;
+                        if (showSecondary) return isSecondary;
+                        return false;
+                    });
+                }
+
+                dataForProcessing = dataForProcessing.filter(row => {
+                    const estabelecimento = String(row.Estabelecimento || '').trim().toUpperCase();
+                    const prefixo = String(row.Prefixo || '').trim().toUpperCase();
+                    if (estabelecimento.startsWith('PENDENTE') || estabelecimento === 'NÃO INFORMADO') return false;
+                    const excludedPrefixos = ['PENDENTE', 'NÃO INFORMADO', 'USB RESERVA', 'USA EXTRA'];
+                    if (excludedPrefixos.some(p => prefixo.startsWith(p))) return false;
+                    return true;
+                });
+                
+                dataForProcessing = dataForProcessing.filter(row => activeMonthFilters.has(row.DataIni_TARM_Mes));
+                
+                return dataForProcessing.map(row => {
+                    const newRow = {...row};
+                    if (newRow.Prefixo) newRow.Prefixo = String(newRow.Prefixo).trim().replace(/-/g, ' ');
+                    if (String(newRow.Estabelecimento || '').trim().toUpperCase().startsWith('PRIVADO')) newRow.Estabelecimento = 'PRIVADO';
+                    return newRow;
+                });
+            }
+
+
+            function generateMunicipalReports() {
+                const selectedYear = yearSelector.value;
+                reportModalTitle.textContent = `Relatórios por Município - ${selectedYear}`;
+                showMessage('Gerando relatórios, por favor aguarde...');
+                reportContent.innerHTML = '<div class="text-center py-10"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div><p class="mt-4">Calculando dados...</p></div>';
+                reportModal.classList.remove('hidden');
+
+                setTimeout(() => {
+                    const dataForReport = getFilteredDataForReports();
+                    const sortedMonths = MONTH_ORDER.filter(m => activeMonthFilters.has(m));
+                    const period = sortedMonths.length > 0 ? ` - ${sortedMonths[0]} a ${sortedMonths[sortedMonths.length - 1]}` : '';
+                    
+                    lastReportData = [];
+                    const reportPagesHTML = [];
+
+                    const showPrimary = primaryIncidentsToggle.checked;
+                    const showSecondary = secondaryIncidentsToggle.checked;
+                    const isGrouped = groupFleetToggle.checked; // Pega o estado do toggle
+
+                    SAMU_OESTE_MUNICIPIOS.forEach(municipio => {
+                        const municipalData = dataForReport.filter(row => row.Município === municipio);
+                        const filteredMunicipalData = municipalData.filter(row => activeResourceTypes.has(getResourceGroup(row.Prefixo)));
+
+                        if(filteredMunicipalData.length === 0) return;
+
+                        const totalVitimas = filteredMunicipalData.reduce((sum, row) => sum + row.Vítimas, 0);
+                        const vitimasPrimarias = filteredMunicipalData.filter(row => !SECONDARY_INCIDENTS.includes((row.Incidente || '').toUpperCase())).reduce((sum, row) => sum + row.Vítimas, 0);
+                        const vitimasSecundarias = totalVitimas - vitimasPrimarias;
+
+                        const resourceCounts = {};
+                        filteredMunicipalData.forEach(row => {
+                            // Usa a nova função centralizada para obter o nome do recurso
+                            const resourceName = getResourceNameForReport(row.Prefixo, isGrouped);
+                            resourceCounts[resourceName] = (resourceCounts[resourceName] || 0) + row.Atendimentos;
+                        });
+                        const totalRecursos = Object.values(resourceCounts).reduce((sum, count) => sum + count, 0);
+                        
+                        const order = ['USB', 'USA', 'MOTO', 'FROTA', 'BOMBEIRO', 'SIATE', 'AÉREO', 'PRIVADO', 'SEM ENCAMINHAMENTO'];
+                        const sortedResourceKeys = Object.keys(resourceCounts).sort((a, b) => {
+                            const aGroup = getResourceGroup(a);
+                            const bGroup = getResourceGroup(b);
+                            const indexA = order.indexOf(aGroup);
+                            const indexB = order.indexOf(bGroup);
+                            if (indexA !== -1 && indexB !== -1 && indexA !== indexB) return indexA - indexB;
+                            if (indexA !== -1 && indexB === -1) return -1;
+                            if (indexA === -1 && indexB !== -1) return 1;
+                            return a.localeCompare(b, undefined, { numeric: true });
+                        });
+
+                        const incidentMap = new Map();
+                        filteredMunicipalData.forEach(row => {
+                            const incident = (row.Incidente || 'NÃO INFORMADO').trim();
+                            incidentMap.set(incident, (incidentMap.get(incident) || 0) + row.Vítimas);
+                        });
+                        const sortedIncidents = [...incidentMap.entries()].filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]);
+
+                        let summaryData = [];
+                        if (showPrimary && showSecondary) {
+                            summaryData = [
+                                ['NÚMERO DE ATENDIMENTOS TOTAIS', totalVitimas.toLocaleString('pt-BR')],
+                                ['ATENDIMENTOS PRIMÁRIOS', vitimasPrimarias.toLocaleString('pt-BR')],
+                                ['ATENDIMENTOS SECUNDÁRIOS', vitimasSecundarias.toLocaleString('pt-BR')]
+                            ];
+                        } else if (showPrimary) {
+                            summaryData = [['ATENDIMENTOS PRIMÁRIOS', vitimasPrimarias.toLocaleString('pt-BR')]];
+                        } else if (showSecondary) {
+                            summaryData = [['ATENDIMENTOS SECUNDÁRIOS', vitimasSecundarias.toLocaleString('pt-BR')]];
+                        }
+
+                        lastReportData.push({
+                            type: 'municipal',
+                            municipio: municipio,
+                            title: `ATENDIMENTOS EM ${municipio.toUpperCase()} ${selectedYear}${period}`,
+                            summary: summaryData,
+                            totalRecursos: totalRecursos.toLocaleString('pt-BR'),
+                            resources: sortedResourceKeys.map(key => [key, (resourceCounts[key] || 0).toLocaleString('pt-BR')]),
+                            incidents: sortedIncidents.map(([name, count]) => [name, count.toLocaleString('pt-BR')])
+                        });
+
+                        const summaryHTML = summaryData.map(row => `<tr class="border-b"><td class="py-2 font-semibold">${row[0]}</td><td class="text-center">${row[1]}</td></tr>`).join('');
+                        const resourceRowsHTML = sortedResourceKeys.map((key, index) => `<tr class="border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}"><td class="py-1 pl-4">${key}</td><td class="text-center">${(resourceCounts[key] || 0).toLocaleString('pt-BR')}</td></tr>`).join('');
+                        const incidentRowsHTML = sortedIncidents.map(([name, count], index) => `<tr class="border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}"><td class="py-1 pl-2">${name}</td><td class="text-center">${count.toLocaleString('pt-BR')}</td></tr>`).join('');
+                        
+                        const reportHTML = `
+                            <div class="report-page font-sans text-gray-800">
+                                <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio.toUpperCase()} ${selectedYear}${period}</h2>
+                                <table class="w-full"><tbody>${summaryHTML}</tbody></table>
+                                <table class="w-full mt-8">
+                                    <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 font-semibold px-4 rounded-tl-lg">RECURSOS DESPACHADOS</th><th class="text-center px-2 rounded-tr-lg">${totalRecursos.toLocaleString('pt-BR')}</th></tr></thead>
+                                    <tbody>${resourceRowsHTML}</tbody>
+                                </table>
+                                <table class="w-full mt-8">
+                                    <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 font-semibold px-2 rounded-tl-lg">INCIDENTE</th><th class="text-center font-semibold px-2 rounded-tr-lg">QUANTIDADE</th></tr></thead>
+                                    <tbody>${incidentRowsHTML}</tbody>
+                                </table>
+                            </div>`;
+                        reportPagesHTML.push(reportHTML);
+                    });
+                    reportContent.innerHTML = reportPagesHTML.join('');
+                }, 100);
+            }
+
+            function generateResourceReport() {
+                const selectedYear = yearSelector.value;
+                reportModalTitle.textContent = `Relatórios por Recurso - ${selectedYear}`;
+                showMessage('Gerando relatórios, por favor aguarde...');
+                reportContent.innerHTML = '<div class="text-center py-10"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div><p class="mt-4">Calculando dados...</p></div>';
+                reportModal.classList.remove('hidden');
+
+                setTimeout(() => {
+                    const dataForReport = getFilteredDataForReports();
+                    const sortedMonths = MONTH_ORDER.filter(m => activeMonthFilters.has(m));
+                    const showTotalColumn = sortedMonths.length > 1;
+                    const isGrouped = groupFleetToggle.checked; // Pega o estado do toggle
+                    
+                    lastReportData = [];
+                    const reportPagesHTML = [];
+
+                    SAMU_OESTE_MUNICIPIOS.forEach(municipio => {
+                        const municipalData = dataForReport.filter(row => row.Município === municipio);
+                        if (municipalData.length === 0) return;
+
+                        // Usa a nova função centralizada para obter os nomes dos recursos
+                        const resources = new Set(municipalData.map(row => getResourceNameForReport(row.Prefixo, isGrouped)));
+                        const filteredResources = [...resources].filter(r => activeResourceTypes.has(getResourceGroup(r)));
+                        
+                        const groupOrder = ['AÉREO', 'BOMBEIRO', 'SIATE', 'FROTA', 'MOTO', 'PRIVADO', 'SEM ENCAMINHAMENTO'];
+                        const sortedResources = filteredResources.sort((a, b) => {
+                            const aGroup = getResourceGroup(a), bGroup = getResourceGroup(b);
+                            const aIsGroup = groupOrder.includes(aGroup), bIsGroup = groupOrder.includes(bGroup);
+                            if (aIsGroup && !bIsGroup) return -1; if (!aIsGroup && bIsGroup) return 1;
+                            if (aIsGroup && bIsGroup) return groupOrder.indexOf(aGroup) - groupOrder.indexOf(bGroup);
+                            if (a.startsWith('USA') && b.startsWith('USB')) return -1; if (a.startsWith('USB') && b.startsWith('USA')) return 1;
+                            return a.localeCompare(b, undefined, { numeric: true });
+                        });
+
+                        const pivotData = new Map();
+                        sortedResources.forEach(res => pivotData.set(res, new Map(sortedMonths.map(m => [m, 0]))));
+                        
+                        municipalData.forEach(row => {
+                            // Usa a nova função centralizada novamente para garantir consistência
+                            const resourceName = getResourceNameForReport(row.Prefixo, isGrouped);
+                            if (pivotData.has(resourceName)) {
+                                const monthMap = pivotData.get(resourceName);
+                                monthMap.set(row.DataIni_TARM_Mes, monthMap.get(row.DataIni_TARM_Mes) + row.Atendimentos);
+                            }
+                        });
+                        
+                        const tableHeadData = ['Recurso', ...sortedMonths];
+                        if (showTotalColumn) tableHeadData.push('Total');
+
+                        const tableBodyData = sortedResources.map(resource => {
+                            const row = [resource];
+                            let total = 0;
+                            sortedMonths.forEach(month => {
+                                const count = pivotData.get(resource).get(month);
+                                row.push(count);
+                                total += count;
+                            });
+                            if (showTotalColumn) row.push(total);
+                            return row;
+                        });
+
+                        const tableFootData = ['TOTAL'];
+                        let grandTotal = 0;
+                        sortedMonths.forEach(month => {
+                            const monthTotal = sortedResources.reduce((sum, res) => sum + pivotData.get(res).get(month), 0);
+                            tableFootData.push(monthTotal);
+                            grandTotal += monthTotal;
+                        });
+                        if (showTotalColumn) tableFootData.push(grandTotal);
+                        
+                        lastReportData.push({
+                            type: 'resource',
+                            municipio: municipio,
+                            title: `${municipio.toUpperCase()} ${selectedYear}`,
+                            table: { head: tableHeadData, body: tableBodyData, foot: tableFootData }
+                        });
+
+                        const tableHeaderHTML = tableHeadData.map((h, i) => `<th class="px-2 py-2 text-xs font-medium uppercase tracking-wider ${h === 'Recurso' ? 'text-left' : 'text-center'} ${i === 0 ? 'rounded-tl-lg' : ''} ${i === tableHeadData.length - 1 ? 'rounded-tr-lg' : ''}">${h}</th>`).join('');
+                        const tableRowsHTML = tableBodyData.map((row, index) => `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}">${row.map((cell, i) => `<td class="px-2 py-2 whitespace-nowrap text-sm ${i === 0 ? 'font-semibold text-gray-900 text-left' : 'text-center text-gray-600'}">${cell}</td>`).join('')}</tr>`).join('');
+                        const tableFooterHTML = `<tr class="bg-gray-200">${tableFootData.map((cell, i) => `<th class="px-2 py-2 text-sm font-bold ${i === 0 ? 'text-left rounded-bl-lg' : 'text-center'} ${i === tableFootData.length - 1 ? 'rounded-br-lg' : ''}">${cell}</th>`).join('')}</tr>`;
+
+                        const reportHTML = `
+                            <div class="report-page font-sans text-gray-800">
+                                <h3 class="text-lg font-bold mb-4">${municipio.toUpperCase()} ${selectedYear}</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full">
+                                        <thead class="bg-gray-700 text-white"><tr>${tableHeaderHTML}</tr></thead>
+                                        <tbody class="divide-y divide-gray-200">${tableRowsHTML}</tbody>
+                                        <tfoot><tr class="border-t-2 border-gray-400">${tableFooterHTML}</tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>`;
+                        reportPagesHTML.push(reportHTML);
+                    });
+                     reportContent.innerHTML = reportPagesHTML.join('');
+                }, 100);
+            }
+            
+            // --- SCROLLBAR & DRAG-DROP LOGIC ---
+            topScrollbarWrapper.addEventListener('scroll', () => { tableContainer.scrollLeft = topScrollbarWrapper.scrollLeft; });
+            tableContainer.addEventListener('scroll', () => { topScrollbarWrapper.scrollLeft = tableContainer.scrollLeft; });
+            
+            tableHead.addEventListener('dragstart', (e) => {
+                if (e.target.tagName === 'TH') {
+                    draggedColumnKey = e.target.dataset.key;
+                    e.target.classList.add('dragging');
+                }
+            });
+
+            tableHead.addEventListener('dragend', (e) => {
+                if (e.target.tagName === 'TH') {
+                    e.target.classList.remove('dragging');
+                    draggedColumnKey = null;
+                }
+            });
+
+            tableHead.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const targetTh = e.target.closest('th');
+                if (targetTh && targetTh.dataset.key !== draggedColumnKey) {
+                    document.querySelectorAll('th.drag-over').forEach(th => th.classList.remove('drag-over'));
+                    targetTh.classList.add('drag-over');
+                }
+            });
+
+            tableHead.addEventListener('dragleave', (e) => { e.target.closest('th')?.classList.remove('drag-over'); });
+
+            tableHead.addEventListener('drop', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('th.drag-over').forEach(th => th.classList.remove('drag-over'));
+                const targetTh = e.target.closest('th');
+                if (targetTh && draggedColumnKey) {
+                    const targetKey = targetTh.dataset.key;
+                    const oldIndex = columnOrder.indexOf(draggedColumnKey);
+                    const newIndex = columnOrder.indexOf(targetKey);
+
+                    if (oldIndex > -1 && newIndex > -1) {
+                        const [item] = columnOrder.splice(oldIndex, 1);
+                        columnOrder.splice(newIndex, 0, item);
+                        const finalData = applySearch(lastGroupedData, columnOrder);
+                        currentlyDisplayedData = finalData;
+                        renderTable(finalData, columnOrder);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
