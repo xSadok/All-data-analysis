@@ -353,13 +353,61 @@
             
             const MONTH_ORDER = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             
-            const APP_STATE_KEY = 'dashboardAnaliseState';
+            // --- INDEXEDDB SETUP ---
+            const DB_NAME = 'dashboardDB';
+            const STORE_NAME = 'stateStore';
+            const DB_VERSION = 1;
+            let db;
 
-            // --- LOCALSTORAGE FUNCTIONS ---
-            /**
-             * Salva o estado atual da aplicação no localStorage.
-             */
-            function saveStateToLocalStorage() {
+            function initDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                    request.onupgradeneeded = event => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                    };
+
+                    request.onsuccess = event => {
+                        db = event.target.result;
+                        resolve(db);
+                    };
+
+                    request.onerror = event => {
+                        console.error("Erro ao abrir IndexedDB:", event.target.errorCode);
+                        reject(event.target.errorCode);
+                    };
+                });
+            }
+
+            function dbAction(type, data = null) {
+                return new Promise((resolve, reject) => {
+                    if (!db) {
+                        reject("Banco de dados não inicializado.");
+                        return;
+                    }
+                    const transaction = db.transaction(STORE_NAME, type);
+                    const store = transaction.objectStore(STORE_NAME);
+                    let request;
+
+                    if (type === 'readwrite') {
+                        if (data === null) { // Ação de limpar
+                            request = store.clear();
+                        } else { // Ação de salvar
+                            request = store.put(data, 'appState');
+                        }
+                    } else { // Ação de ler
+                        request = store.get('appState');
+                    }
+                    
+                    transaction.oncomplete = () => resolve(request.result);
+                    transaction.onerror = event => reject(event.target.error);
+                });
+            }
+
+            async function saveStateToDB() {
                 try {
                     const state = {
                         allData,
@@ -380,28 +428,20 @@
                             secondaryIncidents: secondaryIncidentsToggle.checked,
                         }
                     };
-                    localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+                    await dbAction('readwrite', state);
                 } catch (e) {
-                    console.error("Erro ao salvar estado no localStorage:", e);
-                    showMessage("Não foi possível salvar a sessão. O armazenamento pode estar cheio.", true);
+                    console.error("Erro ao salvar estado no IndexedDB:", e);
+                    showMessage("Não foi possível salvar a sessão.", true);
                 }
             }
 
-            /**
-             * Carrega o estado da aplicação do localStorage.
-             */
-            function loadStateFromLocalStorage() {
-                const savedStateJSON = localStorage.getItem(APP_STATE_KEY);
-                if (!savedStateJSON) return false;
-
+            async function loadStateFromDB() {
                 try {
-                    const savedState = JSON.parse(savedStateJSON);
-                    
-                    if (!savedState.allData || savedState.allData.length === 0) {
+                    const savedState = await dbAction('readonly');
+                    if (!savedState || !savedState.allData || savedState.allData.length === 0) {
                         return false;
                     }
 
-                    // Restaura dados e filtros
                     allData = savedState.allData;
                     activeGroupFilters = new Set(savedState.activeGroupFilters || []);
                     activeMonthFilters = new Set(savedState.activeMonthFilters || []);
@@ -413,7 +453,6 @@
                     useAereoOverrides = savedState.useAereoOverrides || false;
                     yearSelector.value = savedState.year || new Date().getFullYear();
 
-                    // Restaura estado dos toggles
                     if (savedState.toggles) {
                         groupFleetToggle.checked = savedState.toggles.groupFleet;
                         samuOesteToggle.checked = savedState.toggles.samuOeste;
@@ -422,7 +461,6 @@
                         secondaryIncidentsToggle.checked = savedState.toggles.secondaryIncidents;
                     }
 
-                    // Re-inicializa a UI com os dados carregados
                     allUniqueIncidents = new Set(allData.map(row => (row.Incidente || 'NÃO INFORMADO').trim()));
                     generateReportBtn.disabled = false;
                     generateResourceReportBtn.disabled = false;
@@ -434,21 +472,30 @@
                     initialPlaceholder.classList.add('hidden');
                     dashboardContent.classList.remove('hidden');
                     
-                    updateDashboard();
+                    updateDashboard(false); // Evita salvar o estado novamente ao carregar
                     showMessage("Sessão anterior restaurada.");
                     return true;
 
                 } catch (e) {
-                    console.error("Erro ao carregar estado do localStorage:", e);
-                    localStorage.removeItem(APP_STATE_KEY); // Limpa estado corrompido
+                    console.error("Erro ao carregar estado do IndexedDB:", e);
+                    await dbAction('readwrite', null); // Limpa estado corrompido
                     return false;
                 }
             }
 
             // --- INITIAL SETUP ---
-            if (!loadStateFromLocalStorage()) {
-                yearSelector.value = new Date().getFullYear();
-            }
+            (async () => {
+                try {
+                    await initDB();
+                    if (!await loadStateFromDB()) {
+                        yearSelector.value = new Date().getFullYear();
+                    }
+                } catch (error) {
+                    console.error("Falha na inicialização do IndexedDB. A sessão não será salva.", error);
+                    showMessage("Armazenamento local indisponível. A sessão não será salva.", true);
+                    yearSelector.value = new Date().getFullYear();
+                }
+            })();
 
             // --- UTILITY FUNCTIONS ---
             function showMessage(message, isError = false, duration = 3000) {
@@ -727,9 +774,8 @@
 
 
             // --- CORE FUNCTIONS ---
-            function handleDataLoaded(data) {
-                // Limpa o estado antigo ao carregar um novo arquivo
-                localStorage.removeItem(APP_STATE_KEY);
+            async function handleDataLoaded(data) {
+                await dbAction('readwrite', null); // Limpa o BD ao carregar novo arquivo
                 
                 data.forEach(row => {
                     row.Atendimentos = parseFloat(row.Atendimentos) || 0;
@@ -756,7 +802,6 @@
                 monthListContainer.innerHTML = '';
                 aereoInputsContainer.innerHTML = '';
                 allMonths.clear();
-                // Não limpa os filtros ativos aqui, pois eles podem ter sido carregados do localStorage
                 const foundMonths = new Set(data.map(row => row.DataIni_TARM_Mes).filter(Boolean));
                 const sortedMonths = MONTH_ORDER.filter(m => foundMonths.has(m));
                 
@@ -789,7 +834,6 @@
                 sortedResources.forEach(resource => {
                     const isInteresting = INTERESTING_RESOURCES.includes(resource);
                     const listContainer = isInteresting ? interestingResourcesList : otherResourcesList;
-                    // A verificação de 'checked' agora depende do estado carregado
                     const isChecked = activeResourceTypes.has(resource);
 
                     const label = document.createElement('label');
@@ -892,7 +936,7 @@
                 });
             }
 
-            function updateDashboard() {
+            function updateDashboard(shouldSave = true) {
                 if (!allData || !allData.length) return;
 
                 document.querySelectorAll('#filter-controls .toggle-btn[data-filter]').forEach(btn => btn.classList.toggle('active', activeGroupFilters.has(btn.dataset.filter)));
@@ -942,7 +986,9 @@
                 currentlyDisplayedData = finalData;
                 
                 renderTable(finalData, columnOrder);
-                saveStateToLocalStorage(); // Salva o estado após cada atualização
+                if (shouldSave) {
+                    saveStateToDB();
+                }
             }
             
             function applySearch(data, columns) {
@@ -1432,7 +1478,7 @@
                         const finalData = applySearch(lastGroupedData, columnOrder);
                         currentlyDisplayedData = finalData;
                         renderTable(finalData, columnOrder);
-                        saveStateToLocalStorage(); // Salva a nova ordem das colunas
+                        saveStateToDB();
                     }
                 }
             });
