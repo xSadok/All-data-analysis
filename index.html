@@ -1654,17 +1654,14 @@
                                 : municipalData;
                             
                             const resCounts = {};
-                            const occurrencesByResource = {};
                             dataForResourceList.forEach(r => {
                                 const resName = r[keys.p];
-                                const oc = r[ocorrenciaKey];
-                                if (!resName || !oc) return;
-                                if (!occurrencesByResource[resName]) occurrencesByResource[resName] = new Set();
-                                occurrencesByResource[resName].add(oc);
+                                if (!resName) return;
+                                // We count each row as one dispatch for that resource
+                                resCounts[resName] = (resCounts[resName] || 0) + 1;
                             });
-                            for (const resName in occurrencesByResource) resCounts[resName] = occurrencesByResource[resName].size;
                             
-                            const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0); 
+                            const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0);
 
                             const order=['USB','USA','MOTO','FROTA','BOMBEIRO','SIATE','AÉREO','PRIVADO']; 
                             const sortedResKeys = Object.keys(resCounts).sort((a,b)=>order.indexOf(getResourceGroup(a))-order.indexOf(getResourceGroup(b))); 
@@ -1683,7 +1680,7 @@
                             const resHTML=sortedResKeys.map((k,idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-4">${k}</td><td class="text-center">${resCounts[k]}</td></tr>`).join(''); 
                             const incHTML=sortedInc.map(([n,c],idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-2">${n}</td><td class="text-center">${c}</td></tr>`).join('');
                             
-                            reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (POR OCORRÊNCIA)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
+                            reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (TOTAL DE ACIONAMENTOS)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
                        } else { // resource report
                             const monthKey = findKey(data[0], 'dataini_tarm_mes'); if (!monthKey) { showMessage('Coluna de Mês não encontrada para relatório de recurso.', true); return; }
                             const selMonths = MONTH_ORDER_FULL.filter(m => {
@@ -1786,3 +1783,4 @@
 
 </body>
 </html>
+
