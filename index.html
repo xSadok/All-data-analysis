@@ -677,7 +677,7 @@
         ].sort().map(m => m.toUpperCase());
 
         const INCIDENTES_SECUNDARIOS = [
-            'APOIO TERRESTRE', 'AEROMÉDICO', 'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 'ORIENTAÇÃO', 'REGULAÇÃO DE VAGA', 'RETORNO DE EXAME', 'TRANSFERÊNCIA', 'TRANSFERÊNCIA AEROMÉDICO', 'TRANSFERÊNCIA COVID-19', 'TRANSFERÊNCIA VAGA ZERO', 'TRANSPORTE COMBINADO', 'TRANSPORTE PARA EXAME'
+            'APOIO TERRESTRE AEROMÉDICO', 'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 'ORIENTAÇÃO', 'REGULAÇÃO DE VAGA', 'RETORNO DE EXAME', 'TRANSFERÊNCIA', 'TRANSFERÊNCIA AEROMÉDICO', 'TRANSFERÊNCIA COVID-19', 'TRANSFERÊNCIA VAGA ZERO', 'TRANSPORTE COMBINADO', 'TRANSPORTE PARA EXAME'
         ];
 
         // --- Helper Functions ---
@@ -1159,15 +1159,17 @@
                 return !(getResourceGroup(row[prefixoKey]) === 'AÉREO' && String(row[municipioKey]).toUpperCase() === 'CASCAVEL');
             });
 
-            for (const month in aereoOverrides) {
-                const value = parseFloat(aereoOverrides[month]);
+            for (const key in aereoOverrides) { // Loop through keys like "2023-Jan"
+                const value = parseFloat(aereoOverrides[key]);
                 if (!isNaN(value) && value >= 0) {
+                    const [year, month] = key.split('-'); // Split the key
                     const newRow = {};
-                    if (data[0]) Object.keys(data[0]).forEach(key => newRow[key] = null);
+                    if (data[0]) Object.keys(data[0]).forEach(k => newRow[k] = null);
                     
                     newRow[atendimentosKey] = value;
                     newRow[vitimasKey] = value;
                     newRow[monthKey] = month;
+                    newRow._ano = parseInt(year, 10); // Set the year for the new row
                     newRow[prefixoKey] = 'AÉREO (MANUAL)';
                     newRow[municipioKey] = 'Cascavel';
                     const incidenteKey = findKey(data[0], 'incidente');
@@ -1533,11 +1535,55 @@
         saveBookmarkBtn.addEventListener('click', () => { const name = bookmarkNameInput.value.trim(); if (!name) { showMessage('Por favor, insira um nome para a predefinição.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); bookmarks[name] = getUIState(); localStorage.setItem('dashboardBookmarks', JSON.stringify(bookmarks)); bookmarkNameInput.value = ''; loadBookmarks(); showMessage(`Predefinição "${name}" salva com sucesso!`); });
         loadBookmarkBtn.addEventListener('click', () => { const name = bookmarkSelect.value; if (!name) { showMessage('Por favor, selecione uma predefinição para carregar.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); if (bookmarks[name]) { applyUIState(bookmarks[name]); } });
         deleteBookmarkBtn.addEventListener('click', () => { const name = bookmarkSelect.value; if (!name) { showMessage('Por favor, selecione uma predefinição para excluir.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); delete bookmarks[name]; localStorage.setItem('dashboardBookmarks', JSON.stringify(bookmarks)); loadBookmarks(); showMessage(`Predefinição "${name}" excluída.`); });
-        aereoOverrideBtn.addEventListener('click', () => { useAereoOverridesToggle.checked = useAereoOverrides; aereoInputsContainer.querySelectorAll('.aereo-override-input').forEach(input => { input.value = aereoOverrides[input.dataset.month] || ''; }); aereoOverrideModal.classList.remove('hidden'); });
+        
+        aereoOverrideBtn.addEventListener('click', () => {
+            aereoInputsContainer.innerHTML = ''; 
+
+            if (uniqueYears.length === 0) {
+                aereoInputsContainer.innerHTML = '<p class="text-sm text-gray-500">Carregue arquivos para definir os anos disponíveis.</p>';
+            } else {
+                 uniqueYears.forEach(year => {
+                    const yearContainer = document.createElement('div');
+                    yearContainer.className = 'mb-4';
+                    yearContainer.innerHTML = `<h3 class="font-bold text-lg mb-2">${year}</h3>`;
+                    
+                    const grid = document.createElement('div');
+                    grid.className = 'grid grid-cols-2 gap-x-4 gap-y-2';
+
+                    MONTH_ORDER_FULL.forEach(month => {
+                        const key = `${year}-${month}`;
+                        const value = aereoOverrides[key] || '';
+                        const inputGroup = document.createElement('div');
+                        inputGroup.className = 'flex items-center';
+                        inputGroup.innerHTML = `
+                            <label for="aereo-${key}" class="w-12 text-sm text-gray-600">${month}</label>
+                            <input type="number" id="aereo-${key}" data-key="${key}" value="${value}" class="aereo-override-input w-full p-1 border rounded-md text-sm" placeholder="0">
+                        `;
+                        grid.appendChild(inputGroup);
+                    });
+                    yearContainer.appendChild(grid);
+                    aereoInputsContainer.appendChild(yearContainer);
+                });
+            }
+
+            useAereoOverridesToggle.checked = useAereoOverrides;
+            aereoOverrideModal.classList.remove('hidden');
+        });
+        
         closeAereoModalBtn.addEventListener('click', () => aereoOverrideModal.classList.add('hidden'));
         saveAereoModalBtn.addEventListener('click', () => { aereoOverrideModal.classList.add('hidden'); updateDashboard(); });
         useAereoOverridesToggle.addEventListener('change', (e) => { useAereoOverrides = e.target.checked; });
-        aereoInputsContainer.addEventListener('input', (e) => { if (e.target.classList.contains('aereo-override-input')) { const month = e.target.dataset.month; const value = e.target.value.trim(); if (value) aereoOverrides[month] = parseFloat(value); else delete aereoOverrides[month]; } });
+        aereoInputsContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('aereo-override-input')) {
+                const key = e.target.dataset.key;
+                const value = e.target.value.trim();
+                if (value) {
+                    aereoOverrides[key] = parseFloat(value);
+                } else {
+                    delete aereoOverrides[key];
+                }
+            }
+        });
 
         // Collapse/Expand Panel Logic
         document.getElementById('controls-aside').addEventListener('click', (e) => {
