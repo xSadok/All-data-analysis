@@ -855,29 +855,9 @@
                 showMessage("Erro Crítico: Os arquivos devem conter as colunas 'NumOcorrencia', 'Nome_Envolvido' e 'Prefixo'.", true);
                 return;
             }
-
-            const getCompositeKey = (row) => {
-                const ocorrencia = String(row[keyNames.ocorrencia] || '').trim();
-                const paciente = String(row[keyNames.paciente] || '').trim().toUpperCase();
-                const recurso = String(row[keyNames.recurso] || '').trim().toUpperCase();
-                if (!ocorrencia || !paciente || !recurso) return null;
-                return `${ocorrencia}|${paciente}|${recurso}`;
-            };
             
-            const dataMap = new Map();
-            allRawData.forEach(row => {
-                const key = getCompositeKey(row);
-                if (key) {
-                    if (dataMap.has(key)) {
-                        const existingRow = dataMap.get(key);
-                        dataMap.set(key, { ...existingRow, ...row });
-                    } else {
-                        dataMap.set(key, row);
-                    }
-                }
-            });
-
-            mergedData = Array.from(dataMap.values());
+            // REMOVED faulty deduplication logic. Every row is now treated as unique.
+            mergedData = allRawData;
             
             // Pré-processamento para filtro de "sem envio de recurso"
             const occurrenceCounts = new Map();
