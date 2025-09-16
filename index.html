@@ -1671,10 +1671,20 @@
                   const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
 
                   municipalitiesForReport.forEach(municipio => {
-                       const municipalData = data.filter(row => row[municipioKey] === municipio);
+                       let municipalData = data.filter(row => row[municipioKey] === municipio);
                        if (municipalData.length === 0) return;
 
                        if (reportType === 'municipal') {
+                            // Adicionado: Normaliza os prefixos de recursos aéreos para agrupar 'AÉREO (MANUAL)' com 'AÉREO' no relatório.
+                            municipalData = municipalData.map(row => {
+                                const newRow = { ...row };
+                                const prefix = String(newRow[keys.p] || '').toUpperCase();
+                                if (prefix.startsWith('AÉREO')) {
+                                    newRow[keys.p] = 'AÉREO';
+                                }
+                                return newRow;
+                            });
+                            
                             let totalAtendimentos, totalAtendimentosPrimarios, totalAtendimentosSecundarios;
                             
                             const primariosSet = new Set();
@@ -1844,3 +1854,4 @@
 
 </body>
 </html>
+
