@@ -907,9 +907,18 @@
                 newRow._ano = getYearFromOcorrencia(newRow[keyNames.ocorrencia]);
                 
                 const prefixKey = findKey(newRow, 'Prefixo');
-                if (prefixKey && typeof newRow[prefixKey] === 'string' && newRow[prefixKey].toUpperCase().startsWith('PENDENTE')) newRow[prefixKey] = 'PENDENTE';
-                const reservaPrefixos = ["USB RESERVA", "USB EXTRA 1", "USB EXTRA 2", "USB EXTRA"];
-                if (prefixKey && typeof newRow[prefixKey] === 'string' && reservaPrefixos.includes(newRow[prefixKey].toUpperCase())) newRow[prefixKey] = 'USB RESERVA';
+                if (prefixKey && typeof newRow[prefixKey] === 'string') {
+                    let prefixo = newRow[prefixKey].replace(/^\uFEFF/g, '').trim().toUpperCase();
+                    prefixo = prefixo.replace(/-/g, ' ').replace(/\s+/g, ' ');
+                    
+                    if (prefixo.startsWith('PENDENTE')) prefixo = 'PENDENTE';
+
+                    const reservaPrefixos = ["USB RESERVA", "USB EXTRA 1", "USB EXTRA 2", "USB EXTRA"];
+                    if (reservaPrefixos.includes(prefixo)) prefixo = 'USB RESERVA';
+                    
+                    newRow[prefixKey] = prefixo;
+                }
+
                 const estabKey = findKey(newRow, 'Estabelecimento');
                 if (estabKey && typeof newRow[estabKey] === 'string' && newRow[estabKey].toUpperCase().startsWith('PRIVADO')) newRow[estabKey] = 'PRIVADO';
                 
@@ -1409,11 +1418,7 @@
             
             const prefixoKey = findKey(renderedData[0], 'prefixo');
             tableBody.innerHTML = renderedData.map(row => {
-                let cleanRow = {...row};
-                if (prefixoKey && cleanRow[prefixoKey]) {
-                    cleanRow[prefixoKey] = String(cleanRow[prefixoKey]).replace(/-/g, ' ');
-                }
-                return `<tr>${columnOrder.map(h => `<td class="px-6 py-4 whitespace-nowrap text-sm">${cleanRow[h] ?? ''}</td>`).join('')}</tr>`
+                return `<tr>${columnOrder.map(h => `<td class="px-6 py-4 whitespace-nowrap text-sm">${row[h] ?? ''}</td>`).join('')}</tr>`
             }).join('');
             
             updateTableTotals(renderedData);
@@ -1605,7 +1610,6 @@
                     if (activeResourceGroupsToGroup.has(resourceGroup)) {
                         newRow[prefixoKey] = resourceGroup;
                     }
-                    newRow[prefixoKey] = String(newRow[prefixoKey]||'').replace(/-/g,' ');
                     return newRow;
                 });
             }
