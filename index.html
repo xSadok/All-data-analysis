@@ -274,16 +274,16 @@
                     <div class="flex justify-between items-center mb-3 border-b pb-2">
                          <h3 class="font-bold text-lg">2. Agrupamento da Tabela</h3>
                          <button class="panel-toggle p-1 rounded-full hover:bg-gray-200" data-target="#panel-content-2" title="Recolher/Expandir">
-                             <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                              <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                          </button>
                     </div>
                     <div id="panel-content-2">
                         <div class="flex justify-between items-center mb-3">
-                              <span class="text-sm text-gray-600">Arraste para reordenar.</span>
-                              <button id="toggle-more-groups" class="p-1 rounded-full hover:bg-gray-200" title="Mais agrupamentos">
+                               <span class="text-sm text-gray-600">Arraste para reordenar.</span>
+                               <button id="toggle-more-groups" class="p-1 rounded-full hover:bg-gray-200" title="Mais agrupamentos">
                                    <svg id="plus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                    <svg id="minus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
-                              </button>
+                               </button>
                         </div>
                         <div id="group-by-options" class="flex flex-wrap gap-2"></div>
                         <div id="more-group-options" class="hidden flex-wrap gap-2 mt-3 pt-3 border-t"></div>
@@ -295,8 +295,8 @@
                             </label>
                         </div>
                         <div class="mt-4 flex gap-2">
-                              <button id="toggle-atendimentos" class="filter-btn metric-btn filter-btn-active">Atendimentos</button>
-                              <button id="toggle-vitimas" class="filter-btn metric-btn filter-btn-active">Vítimas</button>
+                                <button id="toggle-atendimentos" class="filter-btn metric-btn filter-btn-active">Atendimentos</button>
+                                <button id="toggle-vitimas" class="filter-btn metric-btn filter-btn-active">Vítimas</button>
                         </div>
                         <div id="table-totals" class="mt-4 pt-4 border-t text-sm space-y-1">
                             <h4 class="font-bold text-gray-700">Totais da Tabela Atual:</h4>
@@ -326,7 +326,7 @@
                          <div id="year-filter-options" class="grid grid-cols-3 gap-2"></div>
                          
                          <div id="month-filters-by-year-container" class="space-y-4 pt-4 border-t">
-                             <!-- Year-specific month filters will be injected here -->
+                              <!-- Year-specific month filters will be injected here -->
                          </div>
                     </div>
                 </div>
@@ -358,7 +358,7 @@
                             </div>
                             <button id="aereo-override-btn" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" title="Editar dados AÉREO (afeta apenas Cascavel)" disabled>
                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                 </svg>
                             </button>
                         </div>
@@ -1057,7 +1057,7 @@
                                     <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
                             </div>
-                            <div id="month-panel-${year}" class="mt-2">
+                            <div id="month-panel-${year}" class="mt-2 hidden">
                                 <button class="toggle-months-by-year-btn text-sm w-full my-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded-lg" data-year="${year}">Selecionar Todos</button>
                                 <div class="grid grid-cols-3 gap-2">
                                     ${yearMonths.map(m => `<button class="filter-btn month-btn" data-month-filter="${m}" data-year="${year}">${m}</button>`).join('')}
@@ -1703,8 +1703,7 @@
                             dataForResourceList.forEach(r => {
                                 const resName = r[keys.p];
                                 if (!resName) return;
-                                // We count each row as one dispatch for that resource
-                                resCounts[resName] = (resCounts[resName] || 0) + 1;
+                                resCounts[resName] = (resCounts[resName] || 0) + 1; // Contagem por linha (acionamento)
                             });
                             
                             const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0);
@@ -1712,21 +1711,37 @@
                             const order=['USB','USA','MOTO','FROTA','BOMBEIRO','SIATE','AÉREO','PRIVADO']; 
                             const sortedResKeys = Object.keys(resCounts).sort((a,b)=>order.indexOf(getResourceGroup(a))-order.indexOf(getResourceGroup(b))); 
                             
-                            const incMap = new Map(); 
-                            const totalVitimas = municipalData.reduce((s,r) => s + r[keys.v], 0);
-                            municipalData.forEach(r => { 
-                                 const inc = (r[keys.i]||'N/A').trim(); 
-                                 incMap.set(inc, (incMap.get(inc) || 0) + r[keys.v]); 
-                            }); 
-                            const sortedInc = [...incMap.entries()].filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]); 
+                            // *** INÍCIO DA CORREÇÃO ***
+                            // Mapeia incidentes para um Set de ocorrências únicas para evitar contagem duplicada.
+                            const incMap = new Map();
+                            municipalData.forEach(r => {
+                                const inc = (r[keys.i] || 'N/A').trim();
+                                const oc = r[ocorrenciaKey];
+                                if (!inc || !oc) return;
+
+                                if (!incMap.has(inc)) {
+                                    incMap.set(inc, new Set());
+                                }
+                                incMap.get(inc).add(oc);
+                            });
+
+                            // Converte o Map de Sets para um array de [incidente, contagem]
+                            const sortedInc = [...incMap.entries()]
+                                .map(([name, occurrences]) => [name, occurrences.size]) // Usa o tamanho do Set como a contagem
+                                .filter(([, count]) => count > 0)
+                                .sort((a, b) => b[1] - a[1]);
                             
-                            lastReportData.push({ type:'municipal', municipio, title:`ATENDIMENTOS EM ${municipio} ${reportTitle}`, summary, totalRecursos: totalRes, resources: sortedResKeys.map(k=>[k,resCounts[k]]), incidents: sortedInc });
+                            // O total para o cabeçalho agora é o número total de ocorrências distintas com incidentes
+                            const totalIncidentesUnicos = new Set(municipalData.map(r => r[ocorrenciaKey]).filter(Boolean)).size;
+                            // *** FIM DA CORREÇÃO ***
+                            
+                            lastReportData.push({ type:'municipal', municipio, title:`ATENDIMENTOS EM ${municipio} ${reportTitle}`, summary, totalRecursos: totalRes, resources: sortedResKeys.map(k=>[k,resCounts[k]]), incidents: sortedInc, totalIncidentes: totalIncidentesUnicos });
                             
                             const sumHTML=summary.map(r=>`<tr class="border-b"><td class="py-2 font-semibold">${r[0]}</td><td class="text-center">${r[1]}</td></tr>`).join(''); 
                             const resHTML=sortedResKeys.map((k,idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-4">${k}</td><td class="text-center">${resCounts[k]}</td></tr>`).join(''); 
                             const incHTML=sortedInc.map(([n,c],idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-2">${n}</td><td class="text-center">${c}</td></tr>`).join('');
                             
-                            reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (TOTAL DE ACIONAMENTOS)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
+                            reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (TOTAL DE ACIONAMENTOS)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR OCORRÊNCIA ÚNICA)</th><th class="text-center px-2 rounded-tr-lg">${totalIncidentesUnicos}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
                        } else { // resource report
                             const monthKey = findKey(data[0], 'dataini_tarm_mes'); if (!monthKey) { showMessage('Coluna de Mês não encontrada para relatório de recurso.', true); return; }
                             const selMonths = MONTH_ORDER_FULL.filter(m => {
@@ -1763,7 +1778,7 @@
                   if(data.type === 'municipal') {
                        doc.autoTable({ body: data.summary, startY: 30, theme: 'grid', columnStyles: { 1: { halign: 'center' } } });
                        doc.autoTable({ head: [['RECURSOS DESPACHADOS', data.totalRecursos]], body: data.resources, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
-                       doc.autoTable({ head: [['INCIDENTE', 'QUANTIDADE']], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
+                       doc.autoTable({ head: [['INCIDENTE', data.totalIncidentes]], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
                   } else {
                        doc.autoTable({ 
                             head: [data.table.head], 
@@ -1775,9 +1790,9 @@
                             columnStyles: { 0: { halign: 'left' } }, 
                             didParseCell: (hookData) => { 
                                  if (hookData.row.index === data.table.body.length) { 
-                                     hookData.cell.styles.fontStyle = 'bold'; 
-                                     hookData.cell.styles.fillColor = [229, 231, 235];
-                                     hookData.cell.styles.textColor = [0,0,0];
+                                      hookData.cell.styles.fontStyle = 'bold'; 
+                                      hookData.cell.styles.fillColor = [229, 231, 235];
+                                      hookData.cell.styles.textColor = [0,0,0];
                                  }
                             } 
                        });
@@ -1793,7 +1808,7 @@
                   const sheetName = data.municipio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31);
                   const ws_data = [[data.title], []];
                   if (data.type === 'municipal') {
-                       data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', 'QUANTIDADE']); data.incidents.forEach(r => ws_data.push(r));
+                       data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', data.totalIncidentes]); data.incidents.forEach(r => ws_data.push(r));
                   } else {
                        ws_data.push(data.table.head); data.table.body.forEach(r => ws_data.push(r)); ws_data.push(data.table.foot);
                   }
@@ -1829,4 +1844,3 @@
 
 </body>
 </html>
-
