@@ -655,7 +655,6 @@
         let loadedFiles = new Map(); // Using a Map to store file data by filename
         let mergedData = [];
         let processedData = [];
-        let allProcessedRows = []; // Holds all standardized rows for accurate reporting
         let uniqueYears = [];
         let currentGroupedData = [];
         let currentRenderedData = [];
@@ -715,7 +714,7 @@
         };
         
         const getResourceGroup = (prefixo) => {
-            const p = String(prefixo || '').replace(/^\uFEFF/g, '').trim().toUpperCase();
+            const p = String(prefixo || '').trim().toUpperCase();
             const treatUsbAsFrota = settingUsbFrotaToggle.checked;
             const specialUsbs = ['USB 20', 'USB 21', 'USB 30', 'USB 31'];
             if (p.startsWith('PRIVADO')) return 'PRIVADO';
@@ -832,7 +831,6 @@
                 tableContainer.style.display = 'none';
                 mergedData = [];
                 processedData = [];
-                allProcessedRows = [];
                 yearFilterOptions.innerHTML = '';
                 monthFiltersByYearContainer.innerHTML = '';
                 return;
@@ -858,36 +856,6 @@
                 return;
             }
 
-            // Standardize all rows first for accurate reporting and consistent data
-            allProcessedRows = allRawData.map(row => {
-                let newRow = { ...row };
-                newRow._ano = getYearFromOcorrencia(newRow[keyNames.ocorrencia]);
-                
-                const prefixKey = findKey(newRow, 'Prefixo');
-                if (prefixKey && typeof newRow[prefixKey] === 'string') {
-                    let prefixo = newRow[prefixKey].replace(/^\uFEFF/g, '').trim().toUpperCase();
-                    prefixo = prefixo.replace(/-/g, ' ').replace(/\s+/g, ' ');
-                    if (prefixo.startsWith('PENDENTE')) prefixo = 'PENDENTE';
-                    const reservaPrefixos = ["USB RESERVA", "USB EXTRA 1", "USB EXTRA 2", "USB EXTRA"];
-                    if (reservaPrefixos.includes(prefixo)) prefixo = 'USB RESERVA';
-                    newRow[prefixKey] = prefixo;
-                }
-
-                const estabKey = findKey(newRow, 'Estabelecimento');
-                if (estabKey && typeof newRow[estabKey] === 'string' && newRow[estabKey].toUpperCase().startsWith('PRIVADO')) newRow[estabKey] = 'PRIVADO';
-                
-                const atendimentosKey = findKey(newRow, 'Atendimentos') || 'Atendimentos';
-                const vitimasKey = findKey(newRow, 'Vítimas') || 'Vítimas';
-
-                newRow[atendimentosKey] = parseInt(newRow[atendimentosKey], 10) || 0;
-                newRow[vitimasKey] = parseInt(newRow[vitimasKey], 10);
-                if (isNaN(newRow[vitimasKey])) {
-                    newRow[vitimasKey] = 1;
-                }
-                return newRow;
-            });
-            
-            // Merge rows for the main table view (consolidated view)
             const getCompositeKey = (row) => {
                 const ocorrencia = String(row[keyNames.ocorrencia] || '').trim();
                 const paciente = String(row[keyNames.paciente] || '').trim().toUpperCase();
@@ -897,7 +865,7 @@
             };
             
             const dataMap = new Map();
-            allProcessedRows.forEach(row => { // Use the already standardized rows
+            allRawData.forEach(row => {
                 const key = getCompositeKey(row);
                 if (key) {
                     if (dataMap.has(key)) {
@@ -908,12 +876,12 @@
                     }
                 }
             });
-            mergedData = Array.from(dataMap.values());
-            processedData = mergedData; // This is the consolidated data for the main table
 
+            mergedData = Array.from(dataMap.values());
+            
             // Pré-processamento para filtro de "sem envio de recurso"
             const occurrenceCounts = new Map();
-            allProcessedRows.forEach(row => { // Use all rows for this check
+            mergedData.forEach(row => {
                 const oc = row[keyNames.ocorrencia];
                 if (!oc) return;
                 if (!occurrenceCounts.has(oc)) {
@@ -932,6 +900,31 @@
 
             aereoOverrideBtn.disabled = false;
             reportTitleInput.value = new Date().getFullYear();
+
+            processedData = mergedData.map(row => {
+                let newRow = { ...row };
+                
+                newRow._ano = getYearFromOcorrencia(newRow[keyNames.ocorrencia]);
+                
+                const prefixKey = findKey(newRow, 'Prefixo');
+                if (prefixKey && typeof newRow[prefixKey] === 'string' && newRow[prefixKey].toUpperCase().startsWith('PENDENTE')) newRow[prefixKey] = 'PENDENTE';
+                const reservaPrefixos = ["USB RESERVA", "USB EXTRA 1", "USB EXTRA 2", "USB EXTRA"];
+                if (prefixKey && typeof newRow[prefixKey] === 'string' && reservaPrefixos.includes(newRow[prefixKey].toUpperCase())) newRow[prefixKey] = 'USB RESERVA';
+                const estabKey = findKey(newRow, 'Estabelecimento');
+                if (estabKey && typeof newRow[estabKey] === 'string' && newRow[estabKey].toUpperCase().startsWith('PRIVADO')) newRow[estabKey] = 'PRIVADO';
+                
+                const atendimentosKey = findKey(newRow, 'Atendimentos') || 'Atendimentos';
+                const vitimasKey = findKey(newRow, 'Vítimas') || 'Vítimas';
+
+                newRow[atendimentosKey] = parseInt(newRow[atendimentosKey], 10) || 0;
+                newRow[vitimasKey] = parseInt(newRow[vitimasKey], 10);
+                
+                if (isNaN(newRow[vitimasKey])) {
+                    newRow[vitimasKey] = 1;
+                }
+
+                return newRow;
+            });
             
             populateFilters();
             populateGlobalFilters();
@@ -948,7 +941,7 @@
                 return;
             }
 
-            const allResourceGroups = [...new Set(allProcessedRows.map(row => getResourceGroup(row[prefixoKey])))];
+            const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))];
             
             const interesting = allResourceGroups.filter(r => INTERESTING_RESOURCES.includes(r)).sort();
             const others = allResourceGroups.filter(r => !INTERESTING_RESOURCES.includes(r)).sort();
@@ -1009,7 +1002,7 @@
             const prefixoKey = findKey(processedData[0], 'prefixo');
             if (!prefixoKey) return;
 
-            const allResourceGroups = [...new Set(allProcessedRows.map(row => getResourceGroup(row[prefixoKey])))].sort();
+            const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))].sort();
             activeResourceGroupsToGroup = new Set(allResourceGroups); // Group all by default
 
             let dropdownHTML = `
@@ -1416,7 +1409,11 @@
             
             const prefixoKey = findKey(renderedData[0], 'prefixo');
             tableBody.innerHTML = renderedData.map(row => {
-                return `<tr>${columnOrder.map(h => `<td class="px-6 py-4 whitespace-nowrap text-sm">${row[h] ?? ''}</td>`).join('')}</tr>`
+                let cleanRow = {...row};
+                if (prefixoKey && cleanRow[prefixoKey]) {
+                    cleanRow[prefixoKey] = String(cleanRow[prefixoKey]).replace(/-/g, ' ');
+                }
+                return `<tr>${columnOrder.map(h => `<td class="px-6 py-4 whitespace-nowrap text-sm">${cleanRow[h] ?? ''}</td>`).join('')}</tr>`
             }).join('');
             
             updateTableTotals(renderedData);
@@ -1569,7 +1566,7 @@
 
         // --- Report Generation Logic ---
         const getFilteredDataForReports = () => {
-            let data = [...allProcessedRows]; // Use the complete, un-merged dataset for reports
+            let data = [...processedData];
             if (useAereoOverrides) { data = applyAereoOverrides(data); }
             
             const selectedYears = Array.from(document.querySelectorAll('[data-year-filter].filter-btn-active')).map(el => parseInt(el.dataset.yearFilter, 10));
@@ -1608,6 +1605,7 @@
                     if (activeResourceGroupsToGroup.has(resourceGroup)) {
                         newRow[prefixoKey] = resourceGroup;
                     }
+                    newRow[prefixoKey] = String(newRow[prefixoKey]||'').replace(/-/g,' ');
                     return newRow;
                 });
             }
@@ -1666,13 +1664,16 @@
                              ? municipalData.filter(row => INTERESTING_RESOURCES.includes(getResourceGroup(row[keys.p])))
                              : municipalData;
                          
-                         // Correctly count each dispatch (row) instead of unique occurrences
                          const resCounts = {};
+                         const occurrencesByResource = {};
                          dataForResourceList.forEach(r => {
                              const resName = r[keys.p];
-                             if (!resName) return;
-                             resCounts[resName] = (resCounts[resName] || 0) + 1;
+                             const oc = r[ocorrenciaKey];
+                             if (!resName || !oc) return;
+                             if (!occurrencesByResource[resName]) occurrencesByResource[resName] = new Set();
+                             occurrencesByResource[resName].add(oc);
                          });
+                         for (const resName in occurrencesByResource) resCounts[resName] = occurrencesByResource[resName].size;
                          
                          const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0); 
 
@@ -1693,7 +1694,7 @@
                          const resHTML=sortedResKeys.map((k,idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-4">${k}</td><td class="text-center">${resCounts[k]}</td></tr>`).join(''); 
                          const incHTML=sortedInc.map(([n,c],idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-2">${n}</td><td class="text-center">${c}</td></tr>`).join('');
                          
-                         reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
+                         reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (POR OCORRÊNCIA)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
                      } else { // resource report
                          const monthKey = findKey(data[0], 'dataini_tarm_mes'); if (!monthKey) { showMessage('Coluna de Mês não encontrada para relatório de recurso.', true); return; }
                          const selMonths = MONTH_ORDER_FULL.filter(m => {
@@ -1796,4 +1797,3 @@
 
 </body>
 </html>
-
