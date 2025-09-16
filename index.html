@@ -714,7 +714,7 @@
         };
         
         const getResourceGroup = (prefixo) => {
-            const p = String(prefixo || '').trim().toUpperCase();
+            const p = String(prefixo || '').replace(/^\uFEFF/g, '').trim().toUpperCase();
             const treatUsbAsFrota = settingUsbFrotaToggle.checked;
             const specialUsbs = ['USB 20', 'USB 21', 'USB 30', 'USB 31'];
             if (p.startsWith('PRIVADO')) return 'PRIVADO';
@@ -1797,3 +1797,4 @@
 
 </body>
 </html>
+
