@@ -227,7 +227,7 @@
             </div>
             <div class="relative">
                 <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 L24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -272,18 +272,18 @@
                 <!-- 2. Grouping -->
                 <div class="bg-white p-4 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-3 border-b pb-2">
-                         <h3 class="font-bold text-lg">2. Agrupamento da Tabela</h3>
-                         <button class="panel-toggle p-1 rounded-full hover:bg-gray-200" data-target="#panel-content-2" title="Recolher/Expandir">
+                        <h3 class="font-bold text-lg">2. Agrupamento da Tabela</h3>
+                        <button class="panel-toggle p-1 rounded-full hover:bg-gray-200" data-target="#panel-content-2" title="Recolher/Expandir">
                             <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                         </button>
+                        </button>
                     </div>
                     <div id="panel-content-2">
                         <div class="flex justify-between items-center mb-3">
-                             <span class="text-sm text-gray-600">Arraste para reordenar.</span>
-                             <button id="toggle-more-groups" class="p-1 rounded-full hover:bg-gray-200" title="Mais agrupamentos">
-                                  <svg id="plus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                  <svg id="minus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
-                             </button>
+                            <span class="text-sm text-gray-600">Arraste para reordenar.</span>
+                            <button id="toggle-more-groups" class="p-1 rounded-full hover:bg-gray-200" title="Mais agrupamentos">
+                                <svg id="plus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <svg id="minus-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                            </button>
                         </div>
                         <div id="group-by-options" class="flex flex-wrap gap-2"></div>
                         <div id="more-group-options" class="hidden flex-wrap gap-2 mt-3 pt-3 border-t"></div>
@@ -295,8 +295,8 @@
                             </label>
                         </div>
                         <div class="mt-4 flex gap-2">
-                             <button id="toggle-atendimentos" class="filter-btn metric-btn filter-btn-active">Atendimentos</button>
-                             <button id="toggle-vitimas" class="filter-btn metric-btn filter-btn-active">Vítimas</button>
+                            <button id="toggle-atendimentos" class="filter-btn metric-btn filter-btn-active">Atendimentos</button>
+                            <button id="toggle-vitimas" class="filter-btn metric-btn filter-btn-active">Vítimas</button>
                         </div>
                         <div id="table-totals" class="mt-4 pt-4 border-t text-sm space-y-1">
                             <h4 class="font-bold text-gray-700">Totais da Tabela Atual:</h4>
@@ -321,13 +321,13 @@
                         </button>
                     </div>
                     <div id="panel-content-3">
-                         <h4 class="font-semibold text-sm mb-2">Anos:</h4>
-                         <button id="toggle-years-btn" class="text-sm w-full mb-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded-lg">Selecionar Todos</button>
-                         <div id="year-filter-options" class="grid grid-cols-3 gap-2"></div>
-                         
-                         <div id="month-filters-by-year-container" class="space-y-4 pt-4 border-t">
+                        <h4 class="font-semibold text-sm mb-2">Anos:</h4>
+                        <button id="toggle-years-btn" class="text-sm w-full mb-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded-lg">Selecionar Todos</button>
+                        <div id="year-filter-options" class="grid grid-cols-3 gap-2"></div>
+                        
+                        <div id="month-filters-by-year-container" class="space-y-4 pt-4 border-t">
                             <!-- Year-specific month filters will be injected here -->
-                         </div>
+                        </div>
                     </div>
                 </div>
 
@@ -357,8 +357,8 @@
                                 <div id="resource-type-dropdown" class="hidden absolute z-20 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 p-4"></div>
                             </div>
                             <button id="aereo-override-btn" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" title="Editar dados AÉREO (afeta apenas Cascavel)" disabled>
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                 </svg>
                             </button>
                         </div>
@@ -419,7 +419,7 @@
                 </div>
 
                  <!-- 7. Bookmarks -->
-                <div class="bg-white p-4 rounded-lg shadow">
+                 <div class="bg-white p-4 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-3 border-b pb-2">
                         <h3 class="font-bold text-lg">7. Predefinições</h3>
                         <button class="panel-toggle p-1 rounded-full hover:bg-gray-200" data-target="#panel-content-7" title="Recolher/Expandir">
@@ -476,7 +476,7 @@
                 <h2 id="report-modal-title" class="text-2xl font-bold text-gray-800">Relatórios</h2>
                 <div class="flex items-center gap-2">
                     <button id="export-excel-btn" class="bg-green-600 text-white font-bold p-2 rounded-lg hover:bg-green-700" title="Exportar para Planilha (XLSX)">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
                     </button>
                     <button id="print-report-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Gerar PDF</button>
                     <button id="close-report-modal-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">&times;</button>
@@ -677,7 +677,18 @@
         ].sort().map(m => m.toUpperCase());
 
         const INCIDENTES_SECUNDARIOS = [
-            'APOIO TERRESTRE', 'AEROMÉDICO', 'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 'ORIENTAÇÃO', 'REGULAÇÃO DE VAGA RETORNO DE EXAME', 'TRANSFERÊNCIA', 'TRANSFERÊNCIA AEROMÉDICO', 'TRANSFERÊNCIA COVID-19', 'TRANSFERÊNCIA VAGA ZERO', 'TRANSPORTE COMBINADO', 'TRANSPORTE PARA EXAME'
+            'APOIO TERRESTRE', 
+            'AEROMÉDICO', 
+            'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 
+            'ORIENTAÇÃO', 
+            'REGULAÇÃO DE VAGA', 
+            'RETORNO DE EXAME', 
+            'TRANSFERÊNCIA', 
+            'TRANSFERÊNCIA AEROMÉDICO', 
+            'TRANSFERÊNCIA COVID-19', 
+            'TRANSFERÊNCIA VAGA ZERO', 
+            'TRANSPORTE COMBINADO', 
+            'TRANSPORTE PARA EXAME'
         ];
 
         // --- Helper Functions ---
@@ -750,11 +761,11 @@
                             resolve(json);
                         } catch (csvError) { reject(csvError); }
                     } else {
-                         try {
+                        try {
                             workbook = XLSX.read(data, { type: 'array' });
                             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                             resolve(XLSX.utils.sheet_to_json(worksheet));
-                         } catch (excelError) { reject(excelError); }
+                        } catch (excelError) { reject(excelError); }
                     }
                 };
                 reader.onerror = reject;
@@ -1613,96 +1624,96 @@
              reportModal.classList.remove('hidden');
 
              setTimeout(() => {
-                  const data = getFilteredDataForReports();
-                  const keys = { p: findKey(data[0],'prefixo'), m: findKey(data[0],'município'), v: findKey(data[0],'vítimas'), a: findKey(data[0],'atendimentos'), i: findKey(data[0],'incidente') };
-                  if (data.length === 0 || !keys.p || !keys.m || !keys.v || !keys.a || !keys.i) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
-                  
-                  lastReportData = [];
-                  const reportPagesHTML = [];
-                  const ocorrenciaKey = findKey(data[0], 'numocorrencia');
+                 const data = getFilteredDataForReports();
+                 const keys = { p: findKey(data[0],'prefixo'), m: findKey(data[0],'município'), v: findKey(data[0],'vítimas'), a: findKey(data[0],'atendimentos'), i: findKey(data[0],'incidente') };
+                 if (data.length === 0 || !keys.p || !keys.m || !keys.v || !keys.a || !keys.i) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
+                 
+                 lastReportData = [];
+                 const reportPagesHTML = [];
+                 const ocorrenciaKey = findKey(data[0], 'numocorrencia');
 
-                  const municipioKey = keys.m;
-                  const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
+                 const municipioKey = keys.m;
+                 const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
 
-                  municipalitiesForReport.forEach(municipio => {
-                       const municipalData = data.filter(row => row[municipioKey] === municipio);
-                       if (municipalData.length === 0) return;
+                 municipalitiesForReport.forEach(municipio => {
+                     const municipalData = data.filter(row => row[municipioKey] === municipio);
+                     if (municipalData.length === 0) return;
 
-                       if (reportType === 'municipal') {
-                            let totalAtendimentos, totalAtendimentosPrimarios, totalAtendimentosSecundarios;
-                            
-                            const primariosSet = new Set();
-                            const secundariosSet = new Set();
-                            municipalData.forEach(r => {
-                                const oc = r[ocorrenciaKey];
-                                if (!oc) return;
-                                if (!INCIDENTES_SECUNDARIOS.includes((r[keys.i]||'').toUpperCase())) {
-                                    primariosSet.add(oc);
-                                } else {
-                                    secundariosSet.add(oc);
-                                }
-                            });
-                            totalAtendimentosPrimarios = primariosSet.size;
-                            totalAtendimentosSecundarios = secundariosSet.size;
-                            totalAtendimentos = new Set([...primariosSet, ...secundariosSet]).size;
+                     if (reportType === 'municipal') {
+                         let totalAtendimentos, totalAtendimentosPrimarios, totalAtendimentosSecundarios;
+                         
+                         const primariosSet = new Set();
+                         const secundariosSet = new Set();
+                         municipalData.forEach(r => {
+                             const oc = r[ocorrenciaKey];
+                             if (!oc) return;
+                             if (!INCIDENTES_SECUNDARIOS.includes((r[keys.i]||'').toUpperCase())) {
+                                 primariosSet.add(oc);
+                             } else {
+                                 secundariosSet.add(oc);
+                             }
+                         });
+                         totalAtendimentosPrimarios = primariosSet.size;
+                         totalAtendimentosSecundarios = secundariosSet.size;
+                         totalAtendimentos = new Set([...primariosSet, ...secundariosSet]).size;
 
-                            const summary = [['Nº OCORRÊNCIAS TOTAIS', totalAtendimentos], ['OCORRÊNCIAS PRIMÁRIAS', totalAtendimentosPrimarios], ['OCORRÊNCIAS SECUNDÁRIAS', totalAtendimentosSecundarios]];
+                         const summary = [['Nº OCORRÊNCIAS TOTAIS', totalAtendimentos], ['OCORRÊNCIAS PRIMÁRIAS', totalAtendimentosPrimarios], ['OCORRÊNCIAS SECUNDÁRIAS', totalAtendimentosSecundarios]];
 
-                            const showOnlyInteresting = settingReportInterestingOnly.checked;
-                            const dataForResourceList = showOnlyInteresting 
-                                ? municipalData.filter(row => INTERESTING_RESOURCES.includes(getResourceGroup(row[keys.p])))
-                                : municipalData;
-                            
-                            const resCounts = {};
-                            const occurrencesByResource = {};
-                            dataForResourceList.forEach(r => {
-                                const resName = r[keys.p];
-                                const oc = r[ocorrenciaKey];
-                                if (!resName || !oc) return;
-                                if (!occurrencesByResource[resName]) occurrencesByResource[resName] = new Set();
-                                occurrencesByResource[resName].add(oc);
-                            });
-                            for (const resName in occurrencesByResource) resCounts[resName] = occurrencesByResource[resName].size;
-                           
-                            const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0); 
+                         const showOnlyInteresting = settingReportInterestingOnly.checked;
+                         const dataForResourceList = showOnlyInteresting 
+                             ? municipalData.filter(row => INTERESTING_RESOURCES.includes(getResourceGroup(row[keys.p])))
+                             : municipalData;
+                         
+                         const resCounts = {};
+                         const occurrencesByResource = {};
+                         dataForResourceList.forEach(r => {
+                             const resName = r[keys.p];
+                             const oc = r[ocorrenciaKey];
+                             if (!resName || !oc) return;
+                             if (!occurrencesByResource[resName]) occurrencesByResource[resName] = new Set();
+                             occurrencesByResource[resName].add(oc);
+                         });
+                         for (const resName in occurrencesByResource) resCounts[resName] = occurrencesByResource[resName].size;
+                         
+                         const totalRes = Object.values(resCounts).reduce((s,c)=>s+c,0); 
 
-                            const order=['USB','USA','MOTO','FROTA','BOMBEIRO','SIATE','AÉREO','PRIVADO']; 
-                            const sortedResKeys = Object.keys(resCounts).sort((a,b)=>order.indexOf(getResourceGroup(a))-order.indexOf(getResourceGroup(b))); 
-                            
-                            const incMap = new Map(); 
-                            const totalVitimas = municipalData.reduce((s,r) => s + r[keys.v], 0);
-                            municipalData.forEach(r => { 
-                                 const inc = (r[keys.i]||'N/A').trim(); 
-                                 incMap.set(inc, (incMap.get(inc) || 0) + r[keys.v]); 
-                            }); 
-                            const sortedInc = [...incMap.entries()].filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]); 
-                            
-                            lastReportData.push({ type:'municipal', municipio, title:`ATENDIMENTOS EM ${municipio} ${reportTitle}`, summary, totalRecursos: totalRes, resources: sortedResKeys.map(k=>[k,resCounts[k]]), incidents: sortedInc });
-                            
-                            const sumHTML=summary.map(r=>`<tr class="border-b"><td class="py-2 font-semibold">${r[0]}</td><td class="text-center">${r[1]}</td></tr>`).join(''); 
-                            const resHTML=sortedResKeys.map((k,idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-4">${k}</td><td class="text-center">${resCounts[k]}</td></tr>`).join(''); 
-                            const incHTML=sortedInc.map(([n,c],idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-2">${n}</td><td class="text-center">${c}</td></tr>`).join('');
-                            
-                            reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (POR OCORRÊNCIA)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
-                       } else { // resource report
-                            const monthKey = findKey(data[0], 'dataini_tarm_mes'); if (!monthKey) { showMessage('Coluna de Mês não encontrada para relatório de recurso.', true); return; }
-                            const selMonths = MONTH_ORDER_FULL.filter(m => {
-                                let isSelected = false;
-                                for(const year in selectedMonthsByYear){
-                                    if(selectedMonthsByYear[year].includes(m)){
-                                        isSelected = true;
-                                        break;
-                                    }
-                                }
-                                return isSelected;
-                            });
-                            const showTotal = selMonths.length > 1; const resources = new Set(municipalData.map(r => r[keys.p])); const sortedRes = [...resources].filter(r => activeResourceTypes.has(getResourceGroup(r))).sort((a,b)=>{const o=['AÉREO','BOMBEIRO','SIATE','FROTA','MOTO','PRIVADO','SEM ENCAMINHAMENTO']; const gA=getResourceGroup(a),gB=getResourceGroup(b); const iA=o.indexOf(gA),iB=o.indexOf(gB); if(iA!==-1||iB!==-1)return iA-iB; if(a.startsWith('USA')&&b.startsWith('USB'))return -1; if(a.startsWith('USB')&&b.startsWith('USA'))return 1; return a.localeCompare(b,{numeric:true});}); const pivot = new Map(); sortedRes.forEach(res=>pivot.set(res, new Map(selMonths.map(m=>[m,0])))); municipalData.forEach(r=>{ const resName = r[keys.p]; if(pivot.has(resName)) { const monthMap=pivot.get(resName); monthMap.set(r[monthKey],(monthMap.get(r[monthKey]) || 0) +r[keys.a]); } }); const head=[`Recurso (${municipio})`,...selMonths]; if(showTotal)head.push('Total'); const body=sortedRes.map(res=>{ const row=[res]; let total=0; selMonths.forEach(m=>{ const c=pivot.get(res).get(m); row.push(c); total+=c; }); if(showTotal)row.push(total); return row; }); const foot=['TOTAL']; let grandTotal=0; selMonths.forEach(m=>{ const monthTotal=sortedRes.reduce((s,res)=>s+pivot.get(res).get(m),0); foot.push(monthTotal); grandTotal+=monthTotal; }); if(showTotal)foot.push(grandTotal);
-                            lastReportData.push({ type:'resource', municipio, title:`${municipio} ${reportTitle}`, table: {head,body,foot} });
-                            const headHTML=head.map((h,i)=>`<th class="px-2 py-2 text-xs font-medium uppercase ${i==0?'text-left':'text-center'}">${h}</th>`).join(''); const bodyHTML=body.map((r,idx)=>`<tr class="${idx%2==0?'bg-white':'bg-gray-50'}">${r.map((c,i)=>`<td class="px-2 py-2 text-sm ${i==0?'font-semibold text-left':'text-center'}">${c}</td>`).join('')}</tr>`).join(''); const footHTML=`<tr class="bg-gray-200">${foot.map((c,i)=>`<th class="px-2 py-2 text-sm font-bold ${i==0?'text-left':'text-center'}">${c}</th>`).join('')}</tr>`;
-                            reportPagesHTML.push(`<div class="report-page"><h3 class="text-lg font-bold mb-4">${municipio.toUpperCase()} ${reportTitle}</h3><div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-700 text-white"><tr>${headHTML}</tr></thead><tbody class="divide-y">${bodyHTML}</tbody><tfoot><tr class="border-t-2 border-gray-400">${footHTML}</tr></tfoot></table></div></div>`);
-                       }
-                  });
-                  reportContent.innerHTML = reportPagesHTML.length > 0 ? reportPagesHTML.join('') : '<p class="text-center py-10">Nenhum dado encontrado com os filtros aplicados.</p>';
+                         const order=['USB','USA','MOTO','FROTA','BOMBEIRO','SIATE','AÉREO','PRIVADO']; 
+                         const sortedResKeys = Object.keys(resCounts).sort((a,b)=>order.indexOf(getResourceGroup(a))-order.indexOf(getResourceGroup(b))); 
+                         
+                         const incMap = new Map(); 
+                         const totalVitimas = municipalData.reduce((s,r) => s + r[keys.v], 0);
+                         municipalData.forEach(r => { 
+                             const inc = (r[keys.i]||'N/A').trim(); 
+                             incMap.set(inc, (incMap.get(inc) || 0) + r[keys.v]); 
+                         }); 
+                         const sortedInc = [...incMap.entries()].filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]); 
+                         
+                         lastReportData.push({ type:'municipal', municipio, title:`ATENDIMENTOS EM ${municipio} ${reportTitle}`, summary, totalRecursos: totalRes, resources: sortedResKeys.map(k=>[k,resCounts[k]]), incidents: sortedInc });
+                         
+                         const sumHTML=summary.map(r=>`<tr class="border-b"><td class="py-2 font-semibold">${r[0]}</td><td class="text-center">${r[1]}</td></tr>`).join(''); 
+                         const resHTML=sortedResKeys.map((k,idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-4">${k}</td><td class="text-center">${resCounts[k]}</td></tr>`).join(''); 
+                         const incHTML=sortedInc.map(([n,c],idx)=>`<tr class="border-b ${idx%2==0?'bg-white':'bg-gray-50'}"><td class="py-1 pl-2">${n}</td><td class="text-center">${c}</td></tr>`).join('');
+                         
+                         reportPagesHTML.push(`<div class="report-page"> <h2 class="text-xl font-bold text-center mb-8">ATENDIMENTOS EM ${municipio} ${reportTitle}</h2> <table class="w-full"><tbody>${sumHTML}</tbody></table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-4 rounded-tl-lg">RECURSOS DESPACHADOS (POR OCORRÊNCIA)</th><th class="text-center px-2 rounded-tr-lg">${totalRes}</th></tr></thead> <tbody>${resHTML}</tbody> </table> <table class="w-full mt-8"> <thead class="bg-gray-700 text-white"><tr><th class="text-left py-2 px-2 rounded-tl-lg">INCIDENTE (POR VÍTIMA)</th><th class="text-center px-2 rounded-tr-lg">${totalVitimas}</th></tr></thead> <tbody>${incHTML}</tbody> </table> </div>`);
+                     } else { // resource report
+                         const monthKey = findKey(data[0], 'dataini_tarm_mes'); if (!monthKey) { showMessage('Coluna de Mês não encontrada para relatório de recurso.', true); return; }
+                         const selMonths = MONTH_ORDER_FULL.filter(m => {
+                             let isSelected = false;
+                             for(const year in selectedMonthsByYear){
+                                 if(selectedMonthsByYear[year].includes(m)){
+                                     isSelected = true;
+                                     break;
+                                 }
+                             }
+                             return isSelected;
+                         });
+                         const showTotal = selMonths.length > 1; const resources = new Set(municipalData.map(r => r[keys.p])); const sortedRes = [...resources].filter(r => activeResourceTypes.has(getResourceGroup(r))).sort((a,b)=>{const o=['AÉREO','BOMBEIRO','SIATE','FROTA','MOTO','PRIVADO','SEM ENCAMINHAMENTO']; const gA=getResourceGroup(a),gB=getResourceGroup(b); const iA=o.indexOf(gA),iB=o.indexOf(gB); if(iA!==-1||iB!==-1)return iA-iB; if(a.startsWith('USA')&&b.startsWith('USB'))return -1; if(a.startsWith('USB')&&b.startsWith('USA'))return 1; return a.localeCompare(b,{numeric:true});}); const pivot = new Map(); sortedRes.forEach(res=>pivot.set(res, new Map(selMonths.map(m=>[m,0])))); municipalData.forEach(r=>{ const resName = r[keys.p]; if(pivot.has(resName)) { const monthMap=pivot.get(resName); monthMap.set(r[monthKey],(monthMap.get(r[monthKey]) || 0) +r[keys.a]); } }); const head=[`Recurso (${municipio})`,...selMonths]; if(showTotal)head.push('Total'); const body=sortedRes.map(res=>{ const row=[res]; let total=0; selMonths.forEach(m=>{ const c=pivot.get(res).get(m); row.push(c); total+=c; }); if(showTotal)row.push(total); return row; }); const foot=['TOTAL']; let grandTotal=0; selMonths.forEach(m=>{ const monthTotal=sortedRes.reduce((s,res)=>s+pivot.get(res).get(m),0); foot.push(monthTotal); grandTotal+=monthTotal; }); if(showTotal)foot.push(grandTotal);
+                         lastReportData.push({ type:'resource', municipio, title:`${municipio} ${reportTitle}`, table: {head,body,foot} });
+                         const headHTML=head.map((h,i)=>`<th class="px-2 py-2 text-xs font-medium uppercase ${i==0?'text-left':'text-center'}">${h}</th>`).join(''); const bodyHTML=body.map((r,idx)=>`<tr class="${idx%2==0?'bg-white':'bg-gray-50'}">${r.map((c,i)=>`<td class="px-2 py-2 text-sm ${i==0?'font-semibold text-left':'text-center'}">${c}</td>`).join('')}</tr>`).join(''); const footHTML=`<tr class="bg-gray-200">${foot.map((c,i)=>`<th class="px-2 py-2 text-sm font-bold ${i==0?'text-left':'text-center'}">${c}</th>`).join('')}</tr>`;
+                         reportPagesHTML.push(`<div class="report-page"><h3 class="text-lg font-bold mb-4">${municipio.toUpperCase()} ${reportTitle}</h3><div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-700 text-white"><tr>${headHTML}</tr></thead><tbody class="divide-y">${bodyHTML}</tbody><tfoot><tr class="border-t-2 border-gray-400">${footHTML}</tr></tfoot></table></div></div>`);
+                     }
+                 });
+                 reportContent.innerHTML = reportPagesHTML.length > 0 ? reportPagesHTML.join('') : '<p class="text-center py-10">Nenhum dado encontrado com os filtros aplicados.</p>';
              }, 100);
         };
         
@@ -1715,30 +1726,30 @@
              const bodyStyles = { alternateRowStyles: { fillColor: [245, 245, 245] } };
 
              lastReportData.forEach((data, index) => {
-                  if (index > 0) doc.addPage();
-                  doc.setFontSize(14); doc.text(data.title, 105, 20, { align: 'center' });
-                  if(data.type === 'municipal') {
-                       doc.autoTable({ body: data.summary, startY: 30, theme: 'grid', columnStyles: { 1: { halign: 'center' } } });
-                       doc.autoTable({ head: [['RECURSOS DESPACHADOS', data.totalRecursos]], body: data.resources, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
-                       doc.autoTable({ head: [['INCIDENTE', 'QUANTIDADE']], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
-                  } else {
-                       doc.autoTable({ 
-                            head: [data.table.head], 
-                            body: [...data.table.body, data.table.foot], 
-                            startY: 30, 
-                            theme: 'grid', 
-                            headStyles: headStyles, 
-                            ...bodyStyles,
-                            columnStyles: { 0: { halign: 'left' } }, 
-                            didParseCell: (hookData) => { 
-                                 if (hookData.row.index === data.table.body.length) { 
-                                      hookData.cell.styles.fontStyle = 'bold'; 
-                                      hookData.cell.styles.fillColor = [229, 231, 235];
-                                      hookData.cell.styles.textColor = [0,0,0];
-                                 }
-                            } 
-                       });
-                  }
+                 if (index > 0) doc.addPage();
+                 doc.setFontSize(14); doc.text(data.title, 105, 20, { align: 'center' });
+                 if(data.type === 'municipal') {
+                     doc.autoTable({ body: data.summary, startY: 30, theme: 'grid', columnStyles: { 1: { halign: 'center' } } });
+                     doc.autoTable({ head: [['RECURSOS DESPACHADOS', data.totalRecursos]], body: data.resources, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
+                     doc.autoTable({ head: [['INCIDENTE', 'QUANTIDADE']], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
+                 } else {
+                     doc.autoTable({ 
+                         head: [data.table.head], 
+                         body: [...data.table.body, data.table.foot], 
+                         startY: 30, 
+                         theme: 'grid', 
+                         headStyles: headStyles, 
+                         ...bodyStyles,
+                         columnStyles: { 0: { halign: 'left' } }, 
+                         didParseCell: (hookData) => { 
+                             if (hookData.row.index === data.table.body.length) { 
+                                 hookData.cell.styles.fontStyle = 'bold'; 
+                                 hookData.cell.styles.fillColor = [229, 231, 235];
+                                 hookData.cell.styles.textColor = [0,0,0];
+                             }
+                         } 
+                     });
+                 }
              });
              doc.save(`Relatorio_${reportTitleInput.value.trim()}.pdf`);
         });
@@ -1747,15 +1758,15 @@
              if (lastReportData.length === 0) return showMessage("Nenhum dado para exportar.", true);
              const wb = XLSX.utils.book_new();
              lastReportData.forEach(data => {
-                  const sheetName = data.municipio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31);
-                  const ws_data = [[data.title], []];
-                  if (data.type === 'municipal') {
-                       data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', 'QUANTIDADE']); data.incidents.forEach(r => ws_data.push(r));
-                  } else {
-                       ws_data.push(data.table.head); data.table.body.forEach(r => ws_data.push(r)); ws_data.push(data.table.foot);
-                  }
-                  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-                  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                 const sheetName = data.municipio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31);
+                 const ws_data = [[data.title], []];
+                 if (data.type === 'municipal') {
+                     data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', 'QUANTIDADE']); data.incidents.forEach(r => ws_data.push(r));
+                 } else {
+                     ws_data.push(data.table.head); data.table.body.forEach(r => ws_data.push(r)); ws_data.push(data.table.foot);
+                 }
+                 const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
              });
              XLSX.writeFile(wb, `Relatorio_${reportTitleInput.value.trim()}.xlsx`);
         });
@@ -1786,4 +1797,3 @@
 
 </body>
 </html>
-
