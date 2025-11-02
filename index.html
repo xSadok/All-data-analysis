@@ -448,6 +448,9 @@
                     <div class="flex flex-col sm:flex-row gap-4 mb-4">
                         <div id="search-container" class="w-full p-2 border rounded-md flex items-center flex-wrap gap-2 bg-white">
                             <div id="search-tags" class="flex items-center flex-wrap gap-1"></div>
+                            <select id="search-column-select" class="text-sm p-1 border rounded-md bg-white">
+                                <option value="">Selecionar coluna</option>
+                            </select>
                             <input type="text" id="search-input" placeholder="Adicionar filtro (pressione Enter)..." class="flex-grow p-1 outline-none">
                         </div>
                         <button id="download-csv" class="w-full sm:w-auto px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 whitespace-nowrap">Download CSV</button>
@@ -1094,7 +1097,37 @@
             detailOccurrenceToggle = document.getElementById('detail-occurrence-toggle');
             detailOccurrenceToggle.addEventListener('click', handleFilterChange);
 
+            // populate column selector for per-column search tags
+            populateColumnSelector();
+
             updateYearToggleButton();
+        };
+
+        // Populate the column selector used to create per-column search tags
+        const populateColumnSelector = () => {
+            const select = document.getElementById('search-column-select');
+            if (!select) return;
+            select.innerHTML = '<option value="">Selecionar coluna</option>';
+            // Prefer current columnOrder if available, otherwise infer from processedData
+            const sample = (processedData && processedData.length > 0) ? processedData[0] : (currentGroupedData && currentGroupedData.length > 0 ? currentGroupedData[0] : null);
+            const keys = [];
+            if (columnOrder && columnOrder.length > 0) {
+                columnOrder.forEach(k => keys.push(k));
+            } else if (sample) {
+                Object.keys(sample).forEach(k => {
+                    if (k.startsWith('_')) return; // skip internal
+                    keys.push(k);
+                });
+            }
+            // create readable labels from keys
+            keys.forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k;
+                // humanize key names if possible
+                const label = k.replace(/_/g, ' ').replace(/\b([a-z])/g, s => s.toUpperCase());
+                opt.textContent = label;
+                select.appendChild(opt);
+            });
         };
 
         const handleFilterChange = (e) => {
@@ -1357,6 +1390,8 @@
 
         // --- Rendering ---
         const renderTable = (data) => {
+            // ensure column selector reflects current table columns
+            populateColumnSelector();
             let dataToSort = [...data];
             if (dataToSort.length === 0) {
                 noDataMessage.textContent = "Nenhum resultado encontrado para os filtros selecionados.";
@@ -1392,8 +1427,11 @@
 
             const renderedData = dataToSort.filter(row => {
                 if (activeSearchTags.length === 0) return true;
-                const rowText = Object.values(row).join(' ').toLowerCase();
-                return activeSearchTags.every(tag => rowText.includes(tag.toLowerCase()));
+                // Each activeSearchTag is applied only to its selected column
+                return activeSearchTags.every(t => {
+                    const cellValue = String(row[t.col] ?? '').toLowerCase();
+                    return cellValue.includes(t.tag.toLowerCase());
+                });
             });
 
             currentRenderedData = renderedData;
@@ -1438,17 +1476,19 @@
         // --- Event Listeners & Bookmarks ---
         
         const renderSearchTags = () => {
+            // activeSearchTags is an array of objects: { col: '<key>', colLabel: '<label>', tag: '<value>' }
             searchTagsContainer.innerHTML = '';
-            activeSearchTags.forEach(tag => {
+            activeSearchTags.forEach(({col, colLabel, tag}) => {
                 const tagElement = document.createElement('span');
                 tagElement.className = 'search-tag';
-                tagElement.textContent = tag;
-                
+                tagElement.textContent = `${colLabel || col}: ${tag}`;
+
                 const removeElement = document.createElement('span');
                 removeElement.className = 'remove-tag';
                 removeElement.innerHTML = '&times;';
+                removeElement.dataset.col = col;
                 removeElement.dataset.tag = tag;
-                
+
                 tagElement.appendChild(removeElement);
                 searchTagsContainer.appendChild(tagElement);
             });
@@ -1459,8 +1499,15 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const newTag = searchInput.value.trim();
-                if (newTag && !activeSearchTags.includes(newTag)) {
-                    activeSearchTags.push(newTag);
+                const colSelect = document.getElementById('search-column-select');
+                const selectedCol = colSelect?.value || '';
+                const selectedLabel = colSelect?.selectedOptions?.[0]?.text || selectedCol;
+                if (!selectedCol) { showMessage('Selecione uma coluna antes de adicionar um filtro.', true); return; }
+                if (!newTag) return;
+                // avoid duplicates
+                const exists = activeSearchTags.some(t => t.col === selectedCol && t.tag.toLowerCase() === newTag.toLowerCase());
+                if (!exists) {
+                    activeSearchTags.push({ col: selectedCol, colLabel: selectedLabel, tag: newTag });
                     searchInput.value = '';
                     renderSearchTags();
                 }
@@ -1469,8 +1516,9 @@
 
         searchTagsContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-tag')) {
-                const tagToRemove = e.target.dataset.tag;
-                activeSearchTags = activeSearchTags.filter(tag => tag !== tagToRemove);
+                const col = e.target.dataset.col;
+                const tag = e.target.dataset.tag;
+                activeSearchTags = activeSearchTags.filter(t => !(t.col === col && t.tag === tag));
                 renderSearchTags();
             }
         });
