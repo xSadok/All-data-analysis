@@ -679,7 +679,7 @@
 
         const SAMU_OESTE_MUNICIPIOS = [
             'Anahy', 'Assis Chateaubriand', 'Boa Vista da Aparecida', 'Braganey', 'Cafelândia', 'Campo Bonito', 'Capitão Leônidas Marques', 'Cascavel', 'Catanduvas', 'Céu Azul', 'Corbélia', 'Diamante D\'Oeste', 'Diamante do Sul', 'Entre Rios do Oeste', 'Espigão Alto do Iguaçu', 'Formosa do Oeste', 'Guaíra', 'Guaraniaçu', 'Ibema', 'Iguatu', 'Iracema do Oeste', 'Jesuítas', 'Lindoeste', 'Marechal Cândido Rondon', 'Maripá', 'Mercedes', 'Nova Aurora', 'Nova Santa Rosa', 'Ouro Verde do Oeste', 'Palotina', 'Pato Bragado', 'Quatro Pontes', 'Quedas do Iguaçu', 'Santa Helena', 'Santa Lúcia', 'Santa Tereza do Oeste', 'São José das Palmeiras', 'São Pedro do Iguaçu', 'Terra Roxa', 'Toledo', 'Três Barras do Paraná', 'Tupãssi', 'Vera Cruz do Oeste'
-        ].sort().map(m => m.toUpperCase());
+    ].sort((a,b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })).map(m => m.toUpperCase());
 
         const INCIDENTES_SECUNDARIOS = [
             'APOIO TERRESTRE AEROMÉDICO', 'CAPTAÇÃO DE ÓRGÃOS - AEROMÉDICO', 'COBERTURA DE EVENTO', 'REGULAÇÃO DE VAGA', 'RETORNO DE EXAME', 'TRANSFERÊNCIA', 'TRANSFERÊNCIA AEROMÉDICO', 'TRANSFERÊNCIA COVID-19', 'TRANSFERÊNCIA VAGA ZERO', 'TRANSPORTE COMBINADO', 'TRANSPORTE PARA EXAME'
@@ -937,8 +937,8 @@
 
             const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))];
             
-            const interesting = allResourceGroups.filter(r => INTERESTING_RESOURCES.includes(r)).sort();
-            const others = allResourceGroups.filter(r => !INTERESTING_RESOURCES.includes(r)).sort();
+            const interesting = allResourceGroups.filter(r => INTERESTING_RESOURCES.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
+            const others = allResourceGroups.filter(r => !INTERESTING_RESOURCES.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
 
             activeResourceTypes = new Set(allResourceGroups); // Activate all by default
 
@@ -996,7 +996,7 @@
             const prefixoKey = findKey(processedData[0], 'prefixo');
             if (!prefixoKey) return;
 
-            const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))].sort();
+            const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))].sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
             activeResourceGroupsToGroup = new Set(allResourceGroups); // Group all by default
 
             let dropdownHTML = `
@@ -1043,7 +1043,7 @@
 
             if (!processedData || processedData.length === 0) return;
             
-            uniqueYears = [...new Set(processedData.map(row => row._ano).filter(Boolean))].sort();
+            uniqueYears = [...new Set(processedData.map(row => row._ano).filter(Boolean))].sort((a,b) => a - b);
             yearFilterOptions.innerHTML = uniqueYears.map(y => `<button class="filter-btn year-btn" data-year-filter="${y}">${y}</button>`).join('');
             
             monthFiltersByYearContainer.innerHTML = '';
@@ -1373,7 +1373,7 @@
                     if (!shouldDetailOcorrencia && prefixoKey) {
                         result.forEach(group => {
                             if (group._prefixos && group._prefixos.size > 0) {
-                                group[prefixoKey] = [...group._prefixos].sort().join(', ');
+                                group[prefixoKey] = [...group._prefixos].sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' })).join(', ');
                             }
                         });
                     }
@@ -1764,7 +1764,7 @@
                    return;
                }
 
-               const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
+               const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
 
                municipalitiesForReport.forEach(municipio => {
                    let municipalData = data.filter(row => row[municipioKey] === municipio);
