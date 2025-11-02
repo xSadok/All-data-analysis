@@ -413,9 +413,33 @@
                             <label for="report-title-input" class="text-sm font-medium text-gray-700">Título/Período do Relatório</label>
                             <input type="text" id="report-title-input" placeholder="Ex: Jan a Dez 2025" class="mt-1 w-full p-2 border rounded-md text-sm">
                         </div>
-                        <button id="generate-report-btn" class="w-full px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Município</button>
-                        <button id="generate-resource-report-btn" class="w-full px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Recurso</button>
-                        <button id="generate-atendimentos-report-btn" class="w-full px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório de Atendimentos</button>
+                        <div class="flex gap-2">
+                            <button id="generate-report-btn" class="flex-grow px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Município</button>
+                            <button id="report-config-btn" data-report="municipal" class="px-3 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="generate-resource-report-btn" class="flex-grow px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Recurso</button>
+                            <button id="resource-report-config-btn" data-report="resource" class="px-3 py-2 bg-indigo-700 text-white rounded-md hover:bg-indigo-800 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="generate-atendimentos-report-btn" class="flex-grow px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório de Atendimentos</button>
+                            <button id="atendimentos-report-config-btn" data-report="atendimentos" class="px-3 py-2 bg-yellow-700 text-white rounded-md hover:bg-yellow-800 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -514,6 +538,24 @@
             </div>
             <div class="flex justify-end p-4 bg-gray-50 border-t rounded-b-lg">
                 <button id="save-aereo-modal-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Config Modal -->
+    <div id="report-config-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl" style="position: relative;">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 id="report-config-title" class="text-xl font-bold text-gray-800">Configuração do Relatório</h2>
+                <button id="close-config-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="report-config-content" class="space-y-4">
+                    <!-- Content will be dynamically populated -->
+                </div>
+            </div>
+            <div class="flex justify-end p-4 bg-gray-50 border-t rounded-b-lg">
+                <button id="close-config-ok-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">OK</button>
             </div>
         </div>
     </div>
@@ -1585,6 +1627,208 @@
         saveBookmarkBtn.addEventListener('click', () => { const name = bookmarkNameInput.value.trim(); if (!name) { showMessage('Por favor, insira um nome para a predefinição.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); bookmarks[name] = getUIState(); localStorage.setItem('dashboardBookmarks', JSON.stringify(bookmarks)); bookmarkNameInput.value = ''; loadBookmarks(); showMessage(`Predefinição "${name}" salva com sucesso!`); });
         loadBookmarkBtn.addEventListener('click', () => { const name = bookmarkSelect.value; if (!name) { showMessage('Por favor, selecione uma predefinição para carregar.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); if (bookmarks[name]) { applyUIState(bookmarks[name]); } });
         deleteBookmarkBtn.addEventListener('click', () => { const name = bookmarkSelect.value; if (!name) { showMessage('Por favor, selecione uma predefinição para excluir.', true); return; } const bookmarks = JSON.parse(localStorage.getItem('dashboardBookmarks') || '{}'); delete bookmarks[name]; localStorage.setItem('dashboardBookmarks', JSON.stringify(bookmarks)); loadBookmarks(); showMessage(`Predefinição "${name}" excluída.`); });
+
+        // Report Configuration
+        const reportConfigModal = document.getElementById('report-config-modal');
+        const reportConfigTitle = document.getElementById('report-config-title');
+        const reportConfigContent = document.getElementById('report-config-content');
+        const closeConfigModalBtn = document.getElementById('close-config-modal-btn');
+        const closeConfigOkBtn = document.getElementById('close-config-ok-btn');
+
+        const showReportConfig = (reportType) => {
+            const configs = getActiveFilters();
+            let filtersText = [];
+
+            // Add filters based on report type
+            switch (reportType) {
+                case 'atendimentos':
+                    if (configs.samu_oeste) {
+                        filtersText.push('<div class="mb-4"><h3 class="font-semibold mb-2">Filtro Regional:</h3><p>• Municípios do SAMU OESTE</p></div>');
+                    }
+                    
+                    if (configs.years.length > 0) {
+                        filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Anos:</h3><p>• ${configs.years.join(', ')}</p></div>`);
+                    }
+
+                    if (configs.months.size > 0) {
+                        const monthsByYear = {};
+                        configs.months.forEach(({year, month}) => {
+                            if (!monthsByYear[year]) monthsByYear[year] = [];
+                            monthsByYear[year].push(month);
+                        });
+                        
+                        const monthsText = Object.entries(monthsByYear)
+                            .map(([year, months]) => `<p>• ${year}: ${months.join(', ')}</p>`)
+                            .join('');
+                        filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Meses:</h3>${monthsText}</div>`);
+                    }
+
+                    if (configs.incident_types.length > 0) {
+                        filtersText.push(`<div class="mb-4">
+                            <h3 class="font-semibold mb-2">Tipos de Incidentes:</h3>
+                            <p>• ${configs.incident_types.join(' e ')}</p>
+                        </div>`);
+                    }
+                    break;
+
+                default: // municipal e resource
+                    if (configs.samu_oeste) {
+                        filtersText.push('<div class="mb-4"><h3 class="font-semibold mb-2">Filtro Regional:</h3><p>• Municípios do SAMU OESTE</p></div>');
+                    }
+                    
+                    if (configs.years.length > 0) {
+                        filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Anos:</h3><p>• ${configs.years.join(', ')}</p></div>`);
+                    }
+
+                    if (configs.months.size > 0) {
+                        const monthsByYear = {};
+                        configs.months.forEach(({year, month}) => {
+                            if (!monthsByYear[year]) monthsByYear[year] = [];
+                            monthsByYear[year].push(month);
+                        });
+                        
+                        const monthsText = Object.entries(monthsByYear)
+                            .map(([year, months]) => `<p>• ${year}: ${months.join(', ')}</p>`)
+                            .join('');
+                        filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Meses:</h3>${monthsText}</div>`);
+                    }
+
+                    if (configs.incident_types.length > 0) {
+                        filtersText.push(`<div class="mb-4">
+                            <h3 class="font-semibold mb-2">Tipos de Incidentes:</h3>
+                            <p>• ${configs.incident_types.join(' e ')}</p>
+                        </div>`);
+                    }
+
+                    if (configs.resources.length > 0) {
+                        filtersText.push(`<div class="mb-4">
+                            <h3 class="font-semibold mb-2">Recursos Incluídos:</h3>
+                            <p>• ${configs.resources.join(', ')}</p>
+                        </div>`);
+                    }
+
+                    if (useAereoOverrides) {
+                        filtersText.push('<div class="mb-4 bg-yellow-50 p-3 rounded-lg"><h3 class="font-semibold mb-2 text-yellow-800">Dados AÉREO:</h3><p class="text-yellow-700">• Usando dados manuais para Cascavel</p></div>');
+                    }
+            }
+
+            if (configs.dispatched_only) {
+                filtersText.push('<div class="mb-4 bg-blue-50 p-3 rounded-lg"><p class="text-blue-700">• Mostrando apenas ocorrências com envio de recurso</p></div>');
+            }
+
+            if (filtersText.length === 0) {
+                filtersText.push('<p class="text-gray-500 italic">Nenhum filtro ativo.</p>');
+            }
+
+            reportConfigTitle.textContent = `Configuração: ${reportType === 'municipal' ? 'Relatório por Município' : 
+                                                          reportType === 'resource' ? 'Relatório por Recurso' : 
+                                                          'Relatório de Atendimentos'}`;
+            
+            reportConfigContent.innerHTML = filtersText.join('');
+            reportConfigModal.classList.remove('hidden');
+        };
+
+        const getActiveFilters = () => {
+            const configs = {
+                samu_oeste: filterSamuOesteGlobal.checked,
+                years: Array.from(document.querySelectorAll('[data-year-filter].filter-btn-active')).map(el => el.dataset.yearFilter),
+                months: new Set(),
+                incident_types: [],
+                resources: [...activeResourceTypes].sort(),
+                dispatched_only: document.getElementById('filter-dispatched-only')?.checked || false
+            };
+
+            // Get selected months with their respective years
+            document.querySelectorAll('.month-btn.filter-btn-active').forEach(btn => {
+                configs.months.add({
+                    year: btn.dataset.year,
+                    month: btn.dataset.monthFilter
+                });
+            });
+
+            // Get incident types
+            const primario = document.getElementById('filter-incidente-primario').checked;
+            const secundario = document.getElementById('filter-incidente-secundario').checked;
+            if (primario && !secundario) configs.incident_types.push('Primários');
+            if (!primario && secundario) configs.incident_types.push('Secundários');
+            if (primario && secundario) configs.incident_types.push('Primários', 'Secundários');
+
+            return configs;
+        };
+
+        const generateFilterContent = (reportType, configs) => {
+            let filtersText = [];
+
+            // Add filters based on report type
+            switch (reportType) {
+                case 'atendimentos':
+                    if (configs.samu_oeste) {
+                        filtersText.push('<div class="mb-4"><h3 class="font-semibold mb-2">Filtro Regional:</h3><p class="text-gray-600">• Municípios do SAMU OESTE</p></div>');
+                    }
+                    break;
+
+                default: // municipal e resource
+                    if (configs.samu_oeste) {
+                        filtersText.push('<div class="mb-4"><h3 class="font-semibold mb-2">Filtro Regional:</h3><p class="text-gray-600">• Municípios do SAMU OESTE</p></div>');
+                    }
+                    
+                    if (configs.resources.length > 0) {
+                        filtersText.push(`<div class="mb-4">
+                            <h3 class="font-semibold mb-2">Recursos Incluídos:</h3>
+                            <p class="text-gray-600">• ${configs.resources.join(', ')}</p>
+                        </div>`);
+                    }
+            }
+
+            if (configs.years.length > 0) {
+                filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Anos:</h3><p class="text-gray-600">• ${configs.years.join(', ')}</p></div>`);
+            }
+
+            if (configs.months.size > 0) {
+                const monthsByYear = {};
+                configs.months.forEach(({year, month}) => {
+                    if (!monthsByYear[year]) monthsByYear[year] = [];
+                    monthsByYear[year].push(month);
+                });
+                
+                const monthsText = Object.entries(monthsByYear)
+                    .map(([year, months]) => `<p class="text-gray-600">• ${year}: ${months.join(', ')}</p>`)
+                    .join('');
+                filtersText.push(`<div class="mb-4"><h3 class="font-semibold mb-2">Meses:</h3>${monthsText}</div>`);
+            }
+
+            if (configs.incident_types.length > 0) {
+                filtersText.push(`<div class="mb-4">
+                    <h3 class="font-semibold mb-2">Tipos de Incidentes:</h3>
+                    <p class="text-gray-600">• ${configs.incident_types.join(' e ')}</p>
+                </div>`);
+            }
+
+            if (useAereoOverrides) {
+                filtersText.push('<div class="mb-4 bg-yellow-50 p-3 rounded-lg"><h3 class="font-semibold mb-2 text-yellow-800">Dados AÉREO:</h3><p class="text-yellow-700">• Usando dados manuais para Cascavel</p></div>');
+            }
+
+            if (configs.dispatched_only) {
+                filtersText.push('<div class="mb-4 bg-blue-50 p-3 rounded-lg"><p class="text-blue-700">• Mostrando apenas ocorrências com envio de recurso</p></div>');
+            }
+
+            if (filtersText.length === 0) {
+                filtersText.push('<p class="text-gray-500 italic">Nenhum filtro ativo.</p>');
+            }
+
+            return filtersText.join('');
+        };
+
+        // Event listeners for config buttons
+        document.querySelectorAll('[id$="-report-config-btn"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const reportType = e.target.closest('button').dataset.report;
+                showReportConfig(reportType);
+            });
+        });
+
+        closeConfigModalBtn.addEventListener('click', () => reportConfigModal.classList.add('hidden'));
+        closeConfigOkBtn.addEventListener('click', () => reportConfigModal.classList.add('hidden'));
         
         aereoOverrideBtn.addEventListener('click', () => {
             aereoInputsContainer.innerHTML = ''; 
@@ -1953,6 +2197,50 @@
                     renderFileList();
                     showMessage('Arquivos carregados do cache do navegador.');
                     await processAndDisplayData();
+                }
+
+                // Setup report configuration buttons
+                const configButtons = document.querySelectorAll('button[data-report]');
+                configButtons.forEach(btn => {
+                    console.log('Setting up button:', btn.id);
+                    btn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const reportType = this.getAttribute('data-report');
+                        console.log('Config button clicked:', reportType);
+                        const modal = document.getElementById('report-config-modal');
+                        const title = document.getElementById('report-config-title');
+                        const content = document.getElementById('report-config-content');
+                        
+                        if (modal && title && content) {
+                            // Set modal content
+                            title.textContent = `Configuração: ${
+                                reportType === 'municipal' ? 'Relatório por Município' : 
+                                reportType === 'resource' ? 'Relatório por Recurso' : 
+                                'Relatório de Atendimentos'
+                            }`;
+                            
+                            // Show active filters
+                            const filters = getActiveFilters();
+                            content.innerHTML = generateFilterContent(reportType, filters);
+                            
+                            // Show modal
+                            modal.classList.remove('hidden');
+                        }
+                    };
+                });
+
+                // Setup modal close buttons
+                const modal = document.getElementById('report-config-modal');
+                const closeBtn = document.getElementById('close-config-modal-btn');
+                const okBtn = document.getElementById('close-config-ok-btn');
+
+                if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+                if (okBtn) okBtn.onclick = () => modal.classList.add('hidden');
+                if (modal) {
+                    modal.onclick = (e) => {
+                        if (e.target === modal) modal.classList.add('hidden');
+                    };
                 }
             } catch (error) {
                 console.error('Failed to initialize from IndexedDB:', error);
