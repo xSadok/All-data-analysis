@@ -415,6 +415,7 @@
                         </div>
                         <button id="generate-report-btn" class="w-full px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Município</button>
                         <button id="generate-resource-report-btn" class="w-full px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório por Recurso</button>
+                        <button id="generate-atendimentos-report-btn" class="w-full px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Relatório de Atendimentos</button>
                     </div>
                 </div>
 
@@ -629,9 +630,10 @@
         const resourceTypeDropdown = document.getElementById('resource-type-dropdown');
         const groupResourceBtn = document.getElementById('group-resource-btn');
         const groupResourceDropdown = document.getElementById('group-resource-dropdown');
-        const reportTitleInput = document.getElementById('report-title-input');
-        const generateReportBtn = document.getElementById('generate-report-btn');
-        const generateResourceReportBtn = document.getElementById('generate-resource-report-btn');
+    const reportTitleInput = document.getElementById('report-title-input');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    const generateResourceReportBtn = document.getElementById('generate-resource-report-btn');
+    const generateAtendimentosReportBtn = document.getElementById('generate-atendimentos-report-btn');
         const reportModal = document.getElementById('report-modal');
         const reportModalTitle = document.getElementById('report-modal-title');
         const reportContent = document.getElementById('report-content');
@@ -1696,12 +1698,14 @@
             return data;
         };
         
-        generateReportBtn.addEventListener('click', () => { generateAndShowReports('municipal'); });
-        generateResourceReportBtn.addEventListener('click', () => { generateAndShowReports('resource'); });
+    generateReportBtn.addEventListener('click', () => { generateAndShowReports('municipal'); });
+    generateResourceReportBtn.addEventListener('click', () => { generateAndShowReports('resource'); });
+    if (generateAtendimentosReportBtn) generateAtendimentosReportBtn.addEventListener('click', () => { generateAndShowReports('atendimentos'); });
         
         const generateAndShowReports = (reportType) => {
              const reportTitle = reportTitleInput.value.trim() || new Date().getFullYear();
-             reportModalTitle.textContent = `Relatório por ${reportType === 'municipal' ? 'Município' : 'Recurso'} - ${reportTitle}`;
+             let titlePrefix = reportType === 'municipal' ? 'Município' : (reportType === 'resource' ? 'Recurso' : (reportType === 'atendimentos' ? 'Atendimentos' : reportType));
+             reportModalTitle.textContent = `Relatório de ${titlePrefix} - ${reportTitle}`;
              showMessage('Gerando relatórios, por favor aguarde...');
              reportContent.innerHTML = '<div class="text-center py-10"><div class="loader mx-auto"></div><p class="mt-4">Calculando dados...</p></div>';
              reportModal.classList.remove('hidden');
@@ -1709,20 +1713,64 @@
              setTimeout(() => {
                   const data = getFilteredDataForReports();
                   const keys = { p: findKey(data[0],'prefixo'), m: findKey(data[0],'município'), v: findKey(data[0],'vítimas'), a: findKey(data[0],'atendimentos'), i: findKey(data[0],'incidente') };
-                  if (data.length === 0 || !keys.p || !keys.m || !keys.v || !keys.a || !keys.i) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
+                  if (data.length === 0) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
+                  // For municipal/resource reports we need several keys; atendimentos only needs municipio and incidente and ocorrencia
+                  const ocorrenciaKey = findKey(data[0], 'numocorrencia');
+                  if (reportType === 'municipal' && (!keys.p || !keys.m || !keys.v || !keys.a || !keys.i)) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
+                  if (reportType === 'resource' && (!keys.p || !keys.m || !keys.v || !keys.a || !keys.i)) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório com os filtros atuais.</p>`; return; }
+                  if (reportType === 'atendimentos' && (!keys.m || !ocorrenciaKey || !keys.i)) { reportContent.innerHTML = `<p class="text-center py-10">Não há dados suficientes para gerar o relatório de atendimentos com os filtros atuais.</p>`; return; }
                   
                   lastReportData = [];
                   const reportPagesHTML = [];
-                  const ocorrenciaKey = findKey(data[0], 'numocorrencia');
 
-                  const municipioKey = keys.m;
-                  const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
+               const municipioKey = keys.m;
+               // For atendimentos report we will limit to SAMU OESTE municipalities (user requested)
+               if (reportType === 'atendimentos') {
+                   const municipiosPresent = [...new Set(data.map(row => String(row[municipioKey] || '').toUpperCase()).filter(Boolean))];
+                   const municipalitiesForReport = SAMU_OESTE_MUNICIPIOS.filter(m => municipiosPresent.includes(m));
 
-                  municipalitiesForReport.forEach(municipio => {
-                       let municipalData = data.filter(row => row[municipioKey] === municipio);
+                   // Build table: Município | Primários | Secundários | Total
+                   const head = ['Município', 'Primários', 'Secundários', 'Total'];
+                   const body = [];
+                   municipalitiesForReport.forEach(municipio => {
+                       const municipalData = data.filter(row => String(row[municipioKey] || '').toUpperCase() === municipio);
                        if (municipalData.length === 0) return;
+                       const primariosSet = new Set();
+                       const secundariosSet = new Set();
+                       municipalData.forEach(r => {
+                          const oc = r[ocorrenciaKey];
+                          if (!oc) return;
+                          const isSec = INCIDENTES_SECUNDARIOS.includes(String(r[keys.i] || '').trim().toUpperCase());
+                          if (isSec) secundariosSet.add(oc);
+                          else primariosSet.add(oc);
+                       });
+                       const primCount = primariosSet.size;
+                       const secCount = secundariosSet.size;
+                       const totalCount = new Set([...primariosSet, ...secundariosSet]).size;
+                       // push with municipality name original-case: find one occurrence
+                       const originalName = (municipalData.find(r => r[municipioKey]) || {})[municipioKey] || municipio;
+                       body.push([originalName, primCount, secCount, totalCount]);
+                   });
 
-                       if (reportType === 'municipal') {
+                   if (body.length === 0) { reportContent.innerHTML = `<p class="text-center py-10">Nenhum dado encontrado para os municípios do SAMU OESTE no período selecionado.</p>`; return; }
+
+                   lastReportData.push({ type: 'atendimentos', title: `ATENDIMENTOS (por município) - ${reportTitle}`, table: { head, body } });
+
+                   // build HTML
+                   const headHTML = `<tr>${head.map(h=>`<th class="px-2 py-2 text-xs font-medium uppercase text-left">${h}</th>`).join('')}</tr>`;
+                   const bodyHTML = body.map((r,idx)=>`<tr class="${idx%2==0?'bg-white':'bg-gray-50'}">${r.map((c,i)=>`<td class="px-2 py-2 text-sm ${i===0?'font-semibold text-left':'text-center'}">${c}</td>`).join('')}</tr>`).join('');
+                   const pageHTML = `<div class="report-page"><h2 class="text-xl font-bold text-center mb-6">Atendimentos por Município - ${reportTitle}</h2><div class="overflow-x-auto"><table class="min-w-full"><thead class="bg-gray-700 text-white">${headHTML}</thead><tbody class="divide-y">${bodyHTML}</tbody></table></div></div>`;
+                   reportContent.innerHTML = pageHTML;
+                   return;
+               }
+
+               const municipalitiesForReport = [...new Set(data.map(row => row[municipioKey]).filter(Boolean))].sort();
+
+               municipalitiesForReport.forEach(municipio => {
+                   let municipalData = data.filter(row => row[municipioKey] === municipio);
+                   if (municipalData.length === 0) return;
+
+                   if (reportType === 'municipal') {
                             // Adicionado: Normaliza os prefixos de recursos aéreos para agrupar 'AÉREO (MANUAL)' com 'AÉREO' no relatório.
                             municipalData = municipalData.map(row => {
                                 const newRow = { ...row };
@@ -1833,28 +1881,40 @@
              lastReportData.forEach((data, index) => {
                   if (index > 0) doc.addPage();
                   doc.setFontSize(14); doc.text(data.title, 105, 20, { align: 'center' });
-                  if(data.type === 'municipal') {
-                       doc.autoTable({ body: data.summary, startY: 30, theme: 'grid', columnStyles: { 1: { halign: 'center' } } });
-                       doc.autoTable({ head: [['RECURSOS DESPACHADOS', data.totalRecursos]], body: data.resources, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
-                       doc.autoTable({ head: [['INCIDENTE', data.totalIncidentes]], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
-                  } else {
-                       doc.autoTable({ 
-                            head: [data.table.head], 
-                            body: [...data.table.body, data.table.foot], 
-                            startY: 30, 
-                            theme: 'grid', 
-                            headStyles: headStyles, 
-                            ...bodyStyles,
-                            columnStyles: { 0: { halign: 'left' } }, 
-                            didParseCell: (hookData) => { 
-                                 if (hookData.row.index === data.table.body.length) { 
-                                      hookData.cell.styles.fontStyle = 'bold'; 
-                                      hookData.cell.styles.fillColor = [229, 231, 235];
-                                      hookData.cell.styles.textColor = [0,0,0];
-                                 }
-                            } 
-                       });
-                  }
+                if(data.type === 'municipal') {
+                    doc.autoTable({ body: data.summary, startY: 30, theme: 'grid', columnStyles: { 1: { halign: 'center' } } });
+                    doc.autoTable({ head: [['RECURSOS DESPACHADOS', data.totalRecursos]], body: data.resources, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
+                    doc.autoTable({ head: [['INCIDENTE', data.totalIncidentes]], body: data.incidents, startY: doc.autoTable.previous.finalY + 10, theme: 'grid', headStyles: headStyles, ...bodyStyles, columnStyles: { 1: { halign: 'center' } } });
+                } else if (data.type === 'atendimentos') {
+                    // atendimentos: head + body
+                    doc.autoTable({
+                       head: [data.table.head],
+                       body: data.table.body,
+                       startY: 30,
+                       theme: 'grid',
+                       headStyles: headStyles,
+                       ...bodyStyles,
+                       columnStyles: { 0: { halign: 'left' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } }
+                    });
+                } else {
+                    // resource report (default)
+                    doc.autoTable({ 
+                        head: [data.table.head], 
+                        body: [...data.table.body, data.table.foot], 
+                        startY: 30, 
+                        theme: 'grid', 
+                        headStyles: headStyles, 
+                        ...bodyStyles,
+                        columnStyles: { 0: { halign: 'left' } }, 
+                        didParseCell: (hookData) => { 
+                            if (hookData.row.index === data.table.body.length) { 
+                                hookData.cell.styles.fontStyle = 'bold'; 
+                                hookData.cell.styles.fillColor = [229, 231, 235];
+                                hookData.cell.styles.textColor = [0,0,0];
+                            }
+                        } 
+                    });
+                }
              });
              doc.save(`Relatorio_${reportTitleInput.value.trim()}.pdf`);
         });
@@ -1862,17 +1922,21 @@
         exportExcelBtn.addEventListener('click', () => {
              if (lastReportData.length === 0) return showMessage("Nenhum dado para exportar.", true);
              const wb = XLSX.utils.book_new();
-             lastReportData.forEach(data => {
-                  const sheetName = data.municipio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31);
-                  const ws_data = [[data.title], []];
-                  if (data.type === 'municipal') {
-                       data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', data.totalIncidentes]); data.incidents.forEach(r => ws_data.push(r));
-                  } else {
-                       ws_data.push(data.table.head); data.table.body.forEach(r => ws_data.push(r)); ws_data.push(data.table.foot);
-                  }
-                  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-                  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-             });
+           lastReportData.forEach(data => {
+               const sheetBase = (data.municipio || data.title || 'Relatorio').toString();
+               const sheetName = sheetBase.replace(/[^a-zA-Z0-9]/g, '').substring(0, 31) || 'Sheet1';
+               const ws_data = [[data.title], []];
+               if (data.type === 'municipal') {
+                   data.summary.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['RECURSOS DESPACHADOS', data.totalRecursos]); data.resources.forEach(r => ws_data.push(r)); ws_data.push([]); ws_data.push(['INCIDENTE', data.totalIncidentes]); data.incidents.forEach(r => ws_data.push(r));
+               } else if (data.type === 'atendimentos') {
+                   ws_data.push(data.table.head);
+                   data.table.body.forEach(r => ws_data.push(r));
+               } else {
+                   ws_data.push(data.table.head); data.table.body.forEach(r => ws_data.push(r)); ws_data.push(data.table.foot);
+               }
+               const ws = XLSX.utils.aoa_to_sheet(ws_data);
+               XLSX.utils.book_append_sheet(wb, ws, sheetName);
+           });
              XLSX.writeFile(wb, `Relatorio_${reportTitleInput.value.trim()}.xlsx`);
         });
 
