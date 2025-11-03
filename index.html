@@ -729,6 +729,16 @@
         const totalAtendimentosDisplay = document.getElementById('total-atendimentos-display');
         const totalVitimasDisplay = document.getElementById('total-vitimas-display');
 
+// Ensure the Recursos SAMU quick-filter updates the dashboard immediately when toggled
+if (filterRecursosSamu) {
+    filterRecursosSamu.addEventListener('change', () => {
+        // reset ordering to reflect possible column changes
+        sortState.key = null;
+        columnOrder = [];
+        updateDashboard();
+    });
+}
+
         // --- State Management ---
         let loadedFiles = new Map(); // Using a Map to store file data by filename
         let mergedData = [];
