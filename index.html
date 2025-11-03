@@ -220,30 +220,57 @@
 <body class="bg-gray-100 text-gray-800">
 
     <div class="container mx-auto p-4 lg:p-6">
-        <header class="mb-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Dashboard de Análise Multianual</h1>
-                <p class="text-gray-600 mt-1">Carregue, combine e analise dados de múltiplos anos com filtros avançados.</p>
-            </div>
-            <div class="relative">
-                <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </button>
-                <div id="settings-dropdown">
-                    <label class="custom-checkbox-label p-2 hover:bg-gray-100 rounded-md">
-                        <input type="checkbox" id="setting-report-interesting-only" checked class="custom-checkbox-input">
-                        <span class="custom-checkbox-display"></span>
-                        <span class="text-sm">Recursos de interesse (relatórios)</span>
-                    </label>
-                    <label class="custom-checkbox-label p-2 hover:bg-gray-100 rounded-md">
-                        <input type="checkbox" id="setting-usb-frota-toggle" checked class="custom-checkbox-input">
-                        <span class="custom-checkbox-display"></span>
-                        <span class="text-sm">USB 20, 21, 30 e 31 como FROTA</span>
-                    </label>
-                    <button id="open-aereo-from-settings" class="w-full text-left p-2 hover:bg-gray-100 rounded-md text-sm">Editar dados AÉREO (migrado)</button>
+        <header class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 w-full">
+                <div class="flex flex-col md:flex-row md:items-center gap-4 w-full">
+                    <div class="flex gap-6 bg-white rounded-lg shadow p-4 w-full justify-center items-center">
+                        <span id="toggle-atendimentos" class="filter-btn metric-btn font-bold flex items-center gap-2 cursor-pointer filter-btn-active" tabindex="0">
+                            Atendimentos:
+                            <span id="total-atendimentos-display" class="font-semibold text-2xl">0</span>
+                        </span>
+                        <span id="toggle-vitimas" class="filter-btn metric-btn font-bold flex items-center gap-2 cursor-pointer filter-btn-active" tabindex="0">
+                            Vítimas:
+                            <span id="total-vitimas-display" class="font-semibold text-2xl">0</span>
+                        </span>
+                        <div class="flex items-center gap-4 ml-6">
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" id="setting-unique-atendimentos" checked class="custom-checkbox-input">
+                                <span class="custom-checkbox-display"></span>
+                                <span class="text-sm">Atendimentos (ocorrências exclusivas)</span>
+                            </label>
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" id="filter-samu-oeste-global" checked class="custom-checkbox-input">
+                                <span class="custom-checkbox-display"></span>
+                                <span class="text-sm">Filtrar por SAMU OESTE</span>
+                            </label>
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" id="filter-dispatched-only" class="custom-checkbox-input">
+                                <span class="custom-checkbox-display"></span>
+                                <span class="text-sm">Mostrar apenas com envio de recurso</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative self-end md:self-auto">
+                    <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    <div id="settings-dropdown">
+                        <label class="custom-checkbox-label p-2 hover:bg-gray-100 rounded-md">
+                            <input type="checkbox" id="setting-report-interesting-only" checked class="custom-checkbox-input">
+                            <span class="custom-checkbox-display"></span>
+                            <span class="text-sm">Recursos de interesse (relatórios)</span>
+                        </label>
+                        <label class="custom-checkbox-label p-2 hover:bg-gray-100 rounded-md">
+                            <input type="checkbox" id="setting-usb-frota-toggle" checked class="custom-checkbox-input">
+                            <span class="custom-checkbox-display"></span>
+                            <span class="text-sm">USB 20, 21, 30 e 31 como FROTA</span>
+                        </label>
+                        <button id="open-aereo-from-settings" class="w-full text-left p-2 hover:bg-gray-100 rounded-md text-sm">Editar dados AÉREO (migrado)</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -295,21 +322,7 @@
                                 <span class="text-sm">Detalhar linhas da ocorrência</span>
                             </label>
                         </div>
-                        <div class="mt-4 flex gap-2">
-                                <button id="toggle-atendimentos" class="filter-btn metric-btn filter-btn-active">Atendimentos</button>
-                                <button id="toggle-vitimas" class="filter-btn metric-btn filter-btn-active">Vítimas</button>
-                        </div>
-                        <div id="table-totals" class="mt-4 pt-4 border-t text-sm space-y-1">
-                            <h4 class="font-bold text-gray-700">Totais da Tabela Atual:</h4>
-                            <div class="flex justify-between">
-                                <span>Atendimentos:</span>
-                                <span id="total-atendimentos-display" class="font-semibold">0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Vítimas:</span>
-                                <span id="total-vitimas-display" class="font-semibold">0</span>
-                            </div>
-                        </div>
+                        <!-- removido: controles de atendimentos/vitimas e totais, agora no topo -->
                     </div>
                 </div>
 
@@ -375,21 +388,7 @@
                             </button>
                             <div id="group-resource-dropdown" class="hidden absolute z-20 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 p-4"></div>
                         </div>
-                        <label class="custom-checkbox-label pt-2">
-                            <input type="checkbox" id="setting-unique-atendimentos" checked class="custom-checkbox-input">
-                            <span class="custom-checkbox-display"></span>
-                            <span class="text-sm">Atendimentos (ocorrências exclusivas)</span>
-                        </label>
-                        <label class="custom-checkbox-label pt-2">
-                            <input type="checkbox" id="filter-samu-oeste-global" checked class="custom-checkbox-input">
-                            <span class="custom-checkbox-display"></span>
-                            <span class="text-sm">Filtrar por SAMU OESTE</span>
-                        </label>
-                        <label class="custom-checkbox-label pt-2">
-                            <input type="checkbox" id="filter-dispatched-only" class="custom-checkbox-input">
-                            <span class="custom-checkbox-display"></span>
-                            <span class="text-sm">Mostrar apenas com envio de recurso</span>
-                        </label>
+                        <!-- checkboxes moved to top header (next to totals) -->
                     </div>
                 </div>
                 
@@ -682,8 +681,8 @@
         const searchInput = document.getElementById('search-input');
         const downloadBtn = document.getElementById('download-csv');
         const toggleYearsBtn = document.getElementById('toggle-years-btn');
-        const toggleAtendimentosBtn = document.getElementById('toggle-atendimentos');
-        const toggleVitimasBtn = document.getElementById('toggle-vitimas');
+    const toggleAtendimentosBtn = document.getElementById('toggle-atendimentos');
+    const toggleVitimasBtn = document.getElementById('toggle-vitimas');
         const loader = document.getElementById('loader-container');
         const tableContainer = document.getElementById('table-container');
         const noDataMessage = document.getElementById('no-data-message');
@@ -1529,21 +1528,12 @@
         const updateTableTotals = (data) => {
             const atendimentosKey = findKey(processedData[0], 'Atendimentos') || 'Atendimentos';
             const vitimasKey = findKey(processedData[0], 'Vítimas') || 'Vítimas';
-            let totalAtendimentos = 0;
-
-            const useUniqueAtendimentos = document.getElementById('setting-unique-atendimentos')?.checked;
-
-            if (useUniqueAtendimentos) {
-                const ocorrenciaKey = findKey(processedData[0], 'numocorrencia');
-                if (ocorrenciaKey) {
-                    const uniqueOcorrencias = new Set(data.map(row => row[ocorrenciaKey]).filter(Boolean));
-                    totalAtendimentos = uniqueOcorrencias.size;
-                } else {
-                    totalAtendimentos = data.reduce((sum, row) => sum + (row[atendimentosKey] || 0), 0);
-                }
-            } else {
-                totalAtendimentos = data.reduce((sum, row) => sum + (row[atendimentosKey] || 0), 0);
-            }
+            // The table totals should reflect exactly what's shown in the rendered rows.
+            // During grouping the code already applies the "unique atendimentos" logic
+            // (when enabled) and stores the result in the atendimentos column of each
+            // rendered row. Therefore we simply sum the displayed atendimentos values
+            // to obtain the total — same approach used for vítimas.
+            const totalAtendimentos = data.reduce((sum, row) => sum + (row[atendimentosKey] || 0), 0);
             
             const totalVitimas = data.reduce((sum, row) => sum + (row[vitimasKey] || 0), 0);
             
@@ -1612,13 +1602,29 @@
             if (!groupResourceDropdown.classList.contains('hidden') && !groupResourceBtn.contains(e.target) && !groupResourceDropdown.contains(e.target)) groupResourceDropdown.classList.add('hidden');
         });
         
+        // ensure ARIA and role for accessibility
+        if (toggleAtendimentosBtn) {
+            toggleAtendimentosBtn.setAttribute('role', 'button');
+            toggleAtendimentosBtn.setAttribute('aria-pressed', toggleAtendimentosBtn.classList.contains('filter-btn-active'));
+            toggleAtendimentosBtn.tabIndex = 0;
+        }
+        if (toggleVitimasBtn) {
+            toggleVitimasBtn.setAttribute('role', 'button');
+            toggleVitimasBtn.setAttribute('aria-pressed', toggleVitimasBtn.classList.contains('filter-btn-active'));
+            toggleVitimasBtn.tabIndex = 0;
+        }
+
         [toggleAtendimentosBtn, toggleVitimasBtn].forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.currentTarget.classList.toggle('filter-btn-active');
+            if (!btn) return;
+            const toggle = () => {
+                btn.classList.toggle('filter-btn-active');
+                btn.setAttribute('aria-pressed', btn.classList.contains('filter-btn-active'));
                 sortState.key = null;
                 columnOrder = [];
                 updateDashboard();
-            });
+            };
+            btn.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
+            btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
         });
         
         settingUsbFrotaToggle.addEventListener('change', () => {
