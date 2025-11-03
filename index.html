@@ -243,6 +243,7 @@
                         <span class="custom-checkbox-display"></span>
                         <span class="text-sm">USB 20, 21, 30 e 31 como FROTA</span>
                     </label>
+                    <button id="open-aereo-from-settings" class="w-full text-left p-2 hover:bg-gray-100 rounded-md text-sm">Editar dados AÉREO (migrado)</button>
                 </div>
             </div>
         </header>
@@ -356,7 +357,12 @@
                                 </button>
                                 <div id="resource-type-dropdown" class="hidden absolute z-20 mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 p-4"></div>
                             </div>
-                            <button id="aereo-override-btn" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" title="Editar dados AÉREO (afeta apenas Cascavel)" disabled>
+                                <button id="resource-interest-settings-btn" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 flex-shrink-0" title="Configurar recursos de interesse">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2M12 3v2m4.22 1.78l1.42 1.42M18 11h2M16.22 16.22l1.42-1.42M13 19v2M11 19v2M7.36 17.64l-1.42 1.42M6 13H4M7.36 6.36L5.94 4.94" />
+                                    </svg>
+                                </button>
+                                <button id="aereo-override-btn" style="display:none;" class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" title="Editar dados AÉREO (afeta apenas Cascavel)" disabled>
                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                 </svg>
@@ -560,6 +566,26 @@
         </div>
     </div>
 
+    <!-- Interesting Resources Modal -->
+    <div id="interesting-resources-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-800">Recursos de Interesse</h2>
+                <button id="close-interesting-resources-modal" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div class="p-4">
+                <div id="interesting-resources-modal-list" class="space-y-2 max-h-64 overflow-y-auto p-2">
+                    <!-- checkboxes will be injected -->
+                </div>
+            </div>
+            <div class="flex justify-end p-4 bg-gray-50 border-t rounded-b-lg">
+                <button id="restore-interesting-default-btn" class="bg-yellow-400 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-yellow-500 mr-2">Redefinir padrão</button>
+                <button id="save-interesting-resources-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 mr-2">Salvar</button>
+                <button id="cancel-interesting-resources-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Message Box -->
     <div id="message-box" class="hidden fixed bottom-5 right-5 bg-gray-800 text-white py-2 px-4 rounded-lg shadow-lg transition-opacity duration-300"></div>
 
@@ -710,7 +736,15 @@
         let activeSearchTags = [];
         let lastReportData = [];
         let occurrencesWithoutDispatch = new Set();
-        const INTERESTING_RESOURCES = ['USB', 'USA', 'FROTA', 'MOTO', 'AÉREO', 'BOMBEIRO', 'SIATE'];
+        const DEFAULT_INTERESTING_RESOURCES = ['USB', 'USA', 'FROTA', 'MOTO', 'AÉREO', 'BOMBEIRO', 'SIATE'];
+        // runtime editable list (persisted in localStorage)
+        let interestingResources = (function(){
+            try {
+                const saved = JSON.parse(localStorage.getItem('interestingResources') || 'null');
+                if (Array.isArray(saved) && saved.length > 0) return saved;
+            } catch(e) { console.warn('Failed to load interestingResources', e); }
+            return DEFAULT_INTERESTING_RESOURCES.slice();
+        })();
         let activeResourceTypes = new Set();
         let activeResourceGroupsToGroup = new Set();
         let aereoOverrides = {};
@@ -979,8 +1013,8 @@
 
             const allResourceGroups = [...new Set(processedData.map(row => getResourceGroup(row[prefixoKey])))];
             
-            const interesting = allResourceGroups.filter(r => INTERESTING_RESOURCES.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
-            const others = allResourceGroups.filter(r => !INTERESTING_RESOURCES.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
+            const interesting = allResourceGroups.filter(r => interestingResources.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
+            const others = allResourceGroups.filter(r => !interestingResources.includes(r)).sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
 
             activeResourceTypes = new Set(allResourceGroups); // Activate all by default
 
@@ -1830,7 +1864,8 @@
         closeConfigModalBtn.addEventListener('click', () => reportConfigModal.classList.add('hidden'));
         closeConfigOkBtn.addEventListener('click', () => reportConfigModal.classList.add('hidden'));
         
-        aereoOverrideBtn.addEventListener('click', () => {
+        // Open Aéreo override modal (migrated to settings)
+        const openAereoOverrideModal = () => {
             aereoInputsContainer.innerHTML = ''; 
 
             if (uniqueYears.length === 0) {
@@ -1862,7 +1897,74 @@
 
             useAereoOverridesToggle.checked = useAereoOverrides;
             aereoOverrideModal.classList.remove('hidden');
-        });
+        };
+
+        // wire original aereo button (hidden) and new settings button
+        if (aereoOverrideBtn) aereoOverrideBtn.addEventListener('click', openAereoOverrideModal);
+        const openAereoFromSettingsBtn = document.getElementById('open-aereo-from-settings');
+        if (openAereoFromSettingsBtn) openAereoFromSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); openAereoOverrideModal(); });
+
+        // --- Interesting resources modal handlers ---
+        const resourceInterestModal = document.getElementById('interesting-resources-modal');
+        const resourceInterestList = document.getElementById('interesting-resources-modal-list');
+        const openInterestingResourcesModal = () => {
+            if (!resourceInterestModal || !resourceInterestList) return;
+            resourceInterestList.innerHTML = '';
+            console.log('Opening interesting resources modal. saved:', interestingResources, 'processedData length:', (processedData||[]).length);
+            const prefixKey = processedData && processedData.length>0 ? findKey(processedData[0], 'prefixo') : null;
+            let groups = [];
+            if (prefixKey) {
+                groups = [...new Set(processedData.map(r => getResourceGroup(r[prefixKey] || '')))].filter(Boolean);
+                groups.sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
+            }
+            if (!groups || groups.length === 0) {
+                // fall back to saved + defaults so user can edit even without data
+                groups = Array.from(new Set([...(interestingResources||[]), ...DEFAULT_INTERESTING_RESOURCES]));
+                groups.sort((a,b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
+            }
+            groups.forEach(g => {
+                const checked = interestingResources.includes(g) ? 'checked' : '';
+                const row = document.createElement('div');
+                row.className = 'flex items-center';
+                row.innerHTML = `<label class="custom-checkbox-label w-full"><input type="checkbox" data-resource="${g}" class="custom-checkbox-input interesting-resource-checkbox" ${checked}><span class="custom-checkbox-display"></span><span class="text-sm">${g}</span></label>`;
+                resourceInterestList.appendChild(row);
+            });
+            resourceInterestModal.classList.remove('hidden');
+        };
+
+        const saveInterestingResources = () => {
+            const checked = Array.from(document.querySelectorAll('.interesting-resource-checkbox')).filter(cb=>cb.checked).map(cb=>cb.dataset.resource);
+            if (!Array.isArray(checked)) return;
+            interestingResources = checked.slice();
+            try { localStorage.setItem('interestingResources', JSON.stringify(interestingResources)); } catch(e){ console.warn('Could not save interestingResources', e); }
+            populateGlobalFilters();
+            populateResourceGroupFilter();
+            updateDashboard();
+            showMessage('Recursos de interesse atualizados.');
+            resourceInterestModal.classList.add('hidden');
+        };
+
+        const restoreInterestingDefaults = () => {
+            interestingResources = DEFAULT_INTERESTING_RESOURCES.slice();
+            try { localStorage.setItem('interestingResources', JSON.stringify(interestingResources)); } catch(e){ console.warn('Could not save interestingResources', e); }
+            // update checkboxes in modal if present
+            document.querySelectorAll('.interesting-resource-checkbox').forEach(cb => cb.checked = interestingResources.includes(cb.dataset.resource));
+            populateGlobalFilters();
+            populateResourceGroupFilter();
+            updateDashboard();
+            showMessage('Recursos de interesse restaurados ao padrão.');
+        };
+
+        const resourceInterestBtn = document.getElementById('resource-interest-settings-btn');
+        if (resourceInterestBtn) resourceInterestBtn.addEventListener('click', (e) => { e.stopPropagation(); openInterestingResourcesModal(); });
+        const saveInterestBtn = document.getElementById('save-interesting-resources-btn');
+        if (saveInterestBtn) saveInterestBtn.addEventListener('click', saveInterestingResources);
+        const cancelInterestBtn = document.getElementById('cancel-interesting-resources-btn');
+        if (cancelInterestBtn) cancelInterestBtn.addEventListener('click', () => resourceInterestModal.classList.add('hidden'));
+        const closeInterestBtn = document.getElementById('close-interesting-resources-modal');
+        if (closeInterestBtn) closeInterestBtn.addEventListener('click', () => resourceInterestModal.classList.add('hidden'));
+        const restoreInterestBtn = document.getElementById('restore-interesting-default-btn');
+        if (restoreInterestBtn) restoreInterestBtn.addEventListener('click', restoreInterestingDefaults);
         
         closeAereoModalBtn.addEventListener('click', () => aereoOverrideModal.classList.add('hidden'));
         saveAereoModalBtn.addEventListener('click', () => { aereoOverrideModal.classList.add('hidden'); updateDashboard(); });
@@ -2046,7 +2148,7 @@
 
                             const showOnlyInteresting = settingReportInterestingOnly.checked;
                             const dataForResourceList = showOnlyInteresting 
-                                ? municipalData.filter(row => INTERESTING_RESOURCES.includes(getResourceGroup(row[keys.p])))
+                                ? municipalData.filter(row => interestingResources.includes(getResourceGroup(row[keys.p])))
                                 : municipalData;
                             
                             const resCounts = {};
