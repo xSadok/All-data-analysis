@@ -248,6 +248,11 @@
                                 <span class="custom-checkbox-display"></span>
                                 <span class="text-sm">Mostrar apenas com envio de recurso</span>
                             </label>
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" id="filter-recursos-samu" class="custom-checkbox-input">
+                                <span class="custom-checkbox-display"></span>
+                                <span class="text-sm">Recursos SAMU</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -719,7 +724,8 @@
         const saveAereoModalBtn = document.getElementById('save-aereo-modal-btn');
         const useAereoOverridesToggle = document.getElementById('use-aereo-overrides-toggle');
         const aereoInputsContainer = document.getElementById('aereo-inputs-container');
-        let filterSamuOesteGlobal = document.getElementById('filter-samu-oeste-global');
+    let filterSamuOesteGlobal = document.getElementById('filter-samu-oeste-global');
+    const filterRecursosSamu = document.getElementById('filter-recursos-samu');
         const totalAtendimentosDisplay = document.getElementById('total-atendimentos-display');
         const totalVitimasDisplay = document.getElementById('total-vitimas-display');
 
@@ -1367,7 +1373,36 @@
                     }
 
                     const prefixoKey = findKey(filtered[0], 'prefixo');
-                    if (prefixoKey) filtered = filtered.filter(row => activeResourceTypes.has(getResourceGroup(row[prefixoKey])));
+                    if (prefixoKey) {
+                        // Normalize resource group and apply SAMU quick-filter when enabled.
+                        const stripAccents = (s) => String(s || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase();
+                        const isSAMUGroup = (g) => {
+                            const n = stripAccents(g);
+                            return n === 'USB' || n === 'USA' || n === 'AEREO' || n === 'MOTO';
+                        };
+
+                        if (filterRecursosSamu && filterRecursosSamu.checked) {
+                            filtered = filtered.filter(row => {
+                                try {
+                                    // Treat specific USB numbers as SAMU even if the global "USB as FROTA" setting
+                                    // changes their mapped group. Check raw prefix first.
+                                    const raw = String(row[prefixoKey] || '').toUpperCase().replace(/-/g, ' ').trim();
+                                    if (/^USB\s*(20|21|30|31)\b/.test(raw)) return true;
+                                    const grp = getResourceGroup(row[prefixoKey]);
+                                    return isSAMUGroup(grp);
+                                } catch (err) {
+                                    return false;
+                                }
+                            });
+                        } else {
+                            // otherwise respect the active resource type selections
+                            filtered = filtered.filter(row => {
+                                const grp = getResourceGroup(row[prefixoKey]);
+                                if (!grp) return activeResourceTypes.size === 0;
+                                return activeResourceTypes.size === 0 ? true : activeResourceTypes.has(grp);
+                            });
+                        }
+                    }
                     
                     const showPrimario = document.getElementById('filter-incidente-primario').checked, showSecundario = document.getElementById('filter-incidente-secundario').checked, incidenteKey = findKey(filtered[0], 'incidente');
                     if (incidenteKey) filtered = filtered.filter(row => { const isSec = INCIDENTES_SECUNDARIOS.includes(String(row[incidenteKey] || '').trim().toUpperCase()); if (showPrimario && showSecundario) return true; if (showPrimario) return !isSec; if (showSecundario) return isSec; return false; });
@@ -2030,7 +2065,29 @@
             }
 
             let prefixoKey = findKey(data[0], 'prefixo');
-            if (prefixoKey) data = data.filter(row => activeResourceTypes.has(getResourceGroup(row[prefixoKey])));
+            if (prefixoKey) {
+                const stripAccents = (s) => String(s || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase();
+                const isSAMUGroup = (g) => {
+                    const n = stripAccents(g);
+                    return n === 'USB' || n === 'USA' || n === 'AEREO' || n === 'MOTO';
+                };
+
+                if (filterRecursosSamu && filterRecursosSamu.checked) {
+                    data = data.filter(row => {
+                        try {
+                            const raw = String(row[prefixoKey] || '').toUpperCase().replace(/-/g, ' ').trim();
+                            if (/^USB\s*(20|21|30|31)\b/.test(raw)) return true;
+                            return isSAMUGroup(getResourceGroup(row[prefixoKey]));
+                        } catch (e) { return false; }
+                    });
+                } else {
+                    data = data.filter(row => {
+                        const grp = getResourceGroup(row[prefixoKey]);
+                        if (!grp) return activeResourceTypes.size === 0;
+                        return activeResourceTypes.size === 0 ? true : activeResourceTypes.has(grp);
+                    });
+                }
+            }
             
             const incidenteKey = findKey(data[0], 'incidente'); const showP = document.getElementById('filter-incidente-primario').checked, showS = document.getElementById('filter-incidente-secundario').checked; if (incidenteKey && (!showP || !showS)) { if (!showP && !showS) data = []; else data = data.filter(r => { const isS = INCIDENTES_SECUNDARIOS.includes(String(r[incidenteKey]||'').toUpperCase()); if (showP) return !isS; if (showS) return isS; return false; });}
             if (filterSamuOesteGlobal.checked) { const municipioKey = findKey(data[0], 'município'); if (municipioKey) data = data.filter(row => SAMU_OESTE_MUNICIPIOS.includes(String(row[municipioKey]).toUpperCase())); }
